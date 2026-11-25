@@ -1,0 +1,14 @@
+# 构建中间产物
+android/build/
+__pycache__/
+*.pyc
+
+# 系统/编辑器杂项
+.DS_Store
+Thumbs.db
+desktop.ini
+*.log
+
+# 原始素材（体积大、且不宜公开分发）
+*.docx
+*.pptx

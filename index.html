@@ -1,0 +1,1142 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>四级背卡</title>
+<style>
+:root{
+  --bg:#ffffff; --fg:#111111; --dim:#6b6b6b; --line:#e5e5e5;
+  --soft:#f5f5f5; --brand:#111111; --warn:#b45309; --bad:#c0392b; --good:#1a7f37;
+  --fs:1;
+}
+body.night{
+  --bg:#101012; --fg:#ededed; --dim:#9a9a9a; --line:#2a2a2e;
+  --soft:#1b1b1f; --brand:#ededed; --warn:#e0a33a; --bad:#ff6b5e; --good:#5ddb8a;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",system-ui,"Segoe UI",sans-serif;
+  -webkit-text-size-adjust:100%}
+body{-webkit-font-smoothing:antialiased}
+#app{max-width:560px;margin:0 auto;padding:0 18px 40px}
+.view{display:none}
+.view.on{display:block}
+.hide{display:none !important}
+
+.hd{display:flex;align-items:center;justify-content:space-between;padding:22px 0 6px}
+.hd .t{font-size:calc(22px*var(--fs));font-weight:800;letter-spacing:.5px}
+.badge{font-size:calc(13px*var(--fs));color:var(--dim);border:1px solid var(--line);border-radius:999px;padding:4px 10px}
+
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0 4px}
+.stats>div{background:var(--soft);border-radius:14px;padding:12px 8px;text-align:center}
+.stats b{display:block;font-size:calc(24px*var(--fs));font-weight:800;line-height:1.1}
+.stats span{display:block;font-size:calc(12px*var(--fs));color:var(--dim);margin-top:4px}
+
+.sec{margin:22px 0 0}
+.lbl{font-size:calc(13px*var(--fs));color:var(--dim);margin-bottom:8px;letter-spacing:.5px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chips button{
+  font:inherit;font-size:calc(14px*var(--fs));border:1px solid var(--line);background:var(--bg);color:var(--fg);
+  border-radius:999px;padding:8px 14px;cursor:pointer
+}
+.chips button.on{background:var(--brand);color:var(--bg);border-color:var(--brand);font-weight:600}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.mini{
+  font:inherit;font-size:calc(13px*var(--fs));border:1px solid var(--line);background:var(--bg);color:var(--fg);
+  border-radius:10px;padding:7px 12px;cursor:pointer
+}
+.big{
+  display:block;width:100%;margin-top:26px;padding:20px 0;border:none;border-radius:16px;
+  background:var(--brand);color:var(--bg);font:inherit;font-size:calc(20px*var(--fs));font-weight:800;letter-spacing:4px;cursor:pointer
+}
+.ghost{
+  display:block;width:100%;margin-top:10px;padding:14px 0;border:1px solid var(--line);border-radius:14px;
+  background:var(--bg);color:var(--fg);font:inherit;font-size:calc(15px*var(--fs));cursor:pointer
+}
+.big.spd{background:var(--fg);color:var(--bg);letter-spacing:2px;font-size:calc(18px*var(--fs));margin-top:18px}
+#spWrap>div{transition:transform .18s ease,opacity .18s ease;will-change:transform}
+#spFront{font-size:calc(30px*var(--fs))}
+#spZh{font-size:calc(19px*var(--fs));color:var(--dim);margin-top:12px;font-weight:600;line-height:1.5;word-break:break-word}
+.cal{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,1fr);gap:4px;overflow-x:auto;padding-bottom:4px}
+.cal i{width:100%;aspect-ratio:1;min-width:12px;border-radius:3px;background:var(--soft);display:block}
+.cal i.l1{background:#c9d9c9}.cal i.l2{background:#8fbd8f}.cal i.l3{background:#4e9d4e}.cal i.l4{background:#27702a}
+body.night .cal i.l1{background:#20402a}.cal body.night i.l1{background:#20402a}
+body.night .cal i.l2{background:#2f6b3d}
+body.night .cal i.l3{background:#46a55c}
+body.night .cal i.l4{background:#6fdc8b}
+.warn{margin-top:16px;font-size:calc(13px*var(--fs));line-height:1.55;color:var(--warn);border:1px dashed var(--warn);
+  border-radius:12px;padding:12px}
+.msg{margin-top:14px;font-size:calc(13px*var(--fs));color:var(--dim);text-align:center}
+textarea{width:100%;height:90px;font:inherit;font-size:calc(13px*var(--fs));padding:10px;border-radius:12px;
+  border:1px solid var(--line);background:var(--bg);color:var(--fg);resize:vertical}
+.ft{margin-top:34px;text-align:center;font-size:calc(12px*var(--fs));color:var(--dim);line-height:1.6}
+
+.hd2{display:flex;align-items:center;gap:12px;padding:18px 0 8px}
+.prog{flex:1;height:6px;border-radius:999px;background:var(--soft);overflow:hidden}
+.prog>div{height:100%;width:0;background:var(--brand);transition:width .2s}
+.left{font-size:calc(13px*var(--fs));color:var(--dim);min-width:56px;text-align:right}
+.modeTag{font-size:calc(12px*var(--fs));color:var(--dim);margin:6px 0 0;text-align:center;letter-spacing:1px}
+
+.cardWrap{margin-top:18px;min-height:52vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.front{font-size:calc(34px*var(--fs));font-weight:700;line-height:1.35;word-break:break-word;
+  padding:26px 6px;letter-spacing:.3px}
+.back{width:100%;padding:4px 0}
+.ans{font-size:calc(26px*var(--fs));font-weight:800;line-height:1.4;word-break:break-word}
+.ex{margin-top:18px;font-size:calc(16px*var(--fs));color:var(--dim);line-height:1.7;text-align:left;
+  border-left:3px solid var(--line);padding-left:12px}
+.btns{margin-top:18px}
+.btns button{display:block;width:100%;padding:18px 0;border-radius:16px;font:inherit;font-size:calc(18px*var(--fs));font-weight:700;cursor:pointer;border:1px solid var(--line);background:var(--bg);color:var(--fg)}
+.b1{background:var(--brand) !important;color:var(--bg) !important;border-color:var(--brand) !important;margin-bottom:10px}
+.b2{color:var(--bad)}
+.b3{color:var(--warn);margin-bottom:10px}
+.ghost.on{border-color:var(--fg);color:var(--fg);font-weight:700}
+.fsCtl{display:flex;gap:8px;justify-content:center;margin-top:18px}
+
+.doneBox{padding-top:60px;text-align:center}
+.doneT{font-size:calc(22px*var(--fs));font-weight:800}
+.doneList{margin:26px 0 8px;text-align:left}
+.doneList div{display:flex;justify-content:space-between;padding:12px 2px;border-bottom:1px solid var(--line);
+  font-size:calc(15px*var(--fs))}
+.doneList span:last-child{font-weight:700}
+.hint{font-size:calc(13px*var(--fs));color:var(--dim);line-height:1.6;margin:8px 0 14px}
+.wList{margin-top:4px}
+.wItem{padding:14px 2px;border-bottom:1px solid var(--line)}
+.wItem .a{font-size:calc(17px*var(--fs));font-weight:700}
+.wItem .b{font-size:calc(13px*var(--fs));color:var(--dim);margin-top:4px}
+.wItem .n{float:right;font-size:calc(12px*var(--fs));color:var(--bad);font-weight:700}
+
+/* ---- 倒计时 / 搜索 / 星标 ---- */
+.cd{margin:10px 0 0;font-size:calc(13px*var(--fs));color:var(--dim);text-align:center}
+.cd b{color:var(--bad);font-size:calc(17px*var(--fs))}
+.sItem{display:flex;justify-content:space-between;gap:10px;padding:10px 4px;border-bottom:1px solid var(--line);cursor:pointer}
+.sItem .l{font-size:calc(16px*var(--fs));font-weight:700}
+.sItem .r{font-size:calc(13px*var(--fs));color:var(--dim);text-align:right;flex:1}
+.sBox{width:100%;box-sizing:border-box;padding:12px;border-radius:14px;border:1px solid var(--line);
+  background:var(--soft);color:var(--fg);font-size:calc(16px*var(--fs));font-family:inherit}
+#searchRes{margin-top:6px}
+.starOn{color:#e6a100}
+.cardWrap{position:relative;touch-action:pan-y}
+.cardWrap .front,.cardWrap .back{transition:transform .18s ease,opacity .18s ease;will-change:transform}
+.swipeTag{position:absolute;top:8px;font-size:calc(13px*var(--fs));font-weight:700;opacity:0;transition:opacity .1s}
+.swipeTag.l{left:10px;color:var(--bad)}
+.swipeTag.r{right:10px;color:var(--good)}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <section id="vHome" class="view on">
+    <div class="hd"><div class="t">四级背卡</div><div class="badge" id="streak">🔥 0 天</div></div>
+    <div class="stats">
+      <div><b id="sLearned">0</b><span>已学 / 357</span></div>
+      <div><b id="sDue">0</b><span>今天待复习</span></div>
+      <div><b id="sToday">0</b><span>今天答了</span></div>
+    </div>
+    <div class="cd" id="cd"></div>
+
+    <div class="sec">
+      <div class="lbl">找一张卡</div>
+      <input id="q" class="sBox" placeholder="打英文或中文都行，比如 cut 或 削减">
+      <div id="searchRes"></div>
+    </div>
+
+    <div class="sec">
+      <div class="lbl">怎么背</div>
+      <div class="chips" id="modeChips">
+        <button data-mode="en2zh" class="on">看英文猜意思</button>
+        <button data-mode="zh2en">看中文想英文</button>
+        <button data-mode="cloze">例句填空</button>
+        <button data-mode="listen">听音辨词</button>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="lbl">练哪一类</div>
+      <div class="chips" id="catChips"></div>
+    </div>
+
+    <div class="sec">
+      <div class="lbl">这一轮学几个新词</div>
+      <div class="chips" id="numChips">
+        <button data-n="5">5</button><button data-n="10" class="on">10</button>
+        <button data-n="20">20</button><button data-n="30">30</button>
+      </div>
+    </div>
+
+    <button id="speedBtn" class="big spd">⚡ 极速刷词</button>
+    <div class="hint" style="text-align:center;margin-top:6px">通勤十分钟过一遍：认识的划走，不认识的留到下一轮，直到全认识。</div>
+
+    <button id="startBtn" class="big">开 始</button>
+    <button id="goWrong" class="ghost">错题本（<span id="wCount">0</span> 条）</button>
+    <button id="starOnlyBtn" class="ghost">只看我收藏的（<span id="sCount">0</span> 条）</button>
+
+    <div class="sec">
+      <div class="lbl">打卡日历（最近 8 周）</div>
+      <div id="cal" class="cal"></div>
+    </div>
+
+    <div class="sec">
+      <div class="lbl">设置</div>
+      <div class="row">
+        <button id="fontDown" class="mini">字小一点</button>
+        <button id="fontUp" class="mini">字大一点</button>
+        <button id="nightBtn" class="mini">夜间模式</button>
+        <button id="exToggle" class="mini">例句：先藏起来</button>
+        <button id="backupBtn" class="mini">备份进度</button>
+        <button id="importBtn" class="mini">恢复进度</button>
+      </div>
+    </div>
+
+    <div id="bkWarn" class="warn hide"></div>
+
+    <div id="restoreBox" class="hide" style="margin-top:14px">
+      <textarea id="impText" placeholder="把之前生成的备份码粘贴到这里"></textarea>
+      <div class="row" style="margin-top:8px">
+        <button id="impDo" class="mini">恢复</button>
+        <button id="impPick" class="mini">从文件恢复</button>
+        <input type="file" id="impFile" accept=".txt,text/plain" hidden>
+      </div>
+    </div>
+
+    <div id="msg" class="msg hide"></div>
+    <div class="ft">共 357 条，全部出自 2026 年 6 月三套四级真题<br>进度存在这台设备上</div>
+  </section>
+
+  <section id="vStudy" class="view">
+    <div class="hd2">
+      <button id="quitBtn" class="mini">← 返回</button>
+      <div class="prog"><div id="bar"></div></div>
+      <div id="left" class="left">0</div>
+    </div>
+    <div class="modeTag" id="modeTag"></div>
+    <div class="cardWrap" id="cardWrap">
+      <div class="swipeTag l">← 想不起来</div>
+      <div class="swipeTag r">会 →</div>
+      <div id="front" class="front"></div>
+      <div id="back" class="back hide">
+        <div id="ans" class="ans"></div>
+        <div id="sub" class="ex" style="border:none;padding-left:0;text-align:center;margin-top:8px"></div>
+        <div id="ex" class="ex hide"></div>
+        <div id="exBtnWrap" class="hide" style="margin-top:10px">
+          <button id="exBtn" class="mini">看例句</button>
+        </div>
+        <div style="margin-top:14px"><button id="speakBtn" class="mini">🔊 听发音</button></div>
+      </div>
+    </div>
+    <div class="btns">
+      <div id="askBtns">
+        <button id="knownBtn" class="b1">我想到了</button>
+        <button id="unknownBtn" class="b2">想不起来</button>
+      </div>
+      <div id="judgeBtns" class="hide">
+        <button id="rightBtn" class="b1">确实对 ✓</button>
+        <button id="fuzzyBtn" class="b3">有点模糊</button>
+        <button id="wrongBtn" class="b2">记错了</button>
+      </div>
+    </div>
+    <div class="fsCtl">
+      <button id="undoBtn" class="mini">↶ 撤销上一步</button>
+      <button id="starBtn" class="mini">☆ 收藏</button>
+      <button id="fsDown" class="mini">字小一点</button>
+      <button id="fsUp" class="mini">字大一点</button>
+    </div>
+    <div class="hint" style="text-align:center">也可以左右滑卡片：往右滑=会，往左滑=不会</div>
+  </section>
+
+  <section id="vSpeed" class="view">
+    <div class="hd2">
+      <button id="spBack" class="mini">← 返回</button>
+      <div class="prog"><div id="spBar"></div></div>
+      <div id="spLeft" class="left">0</div>
+    </div>
+    <div class="modeTag" id="spTag"></div>
+    <div class="cardWrap" id="spWrap">
+      <div class="swipeTag l">← 不认识</div>
+      <div class="swipeTag r">认识 →</div>
+      <div id="spFront" class="front"></div>
+      <div id="spZh"></div>
+    </div>
+    <div class="btns">
+      <button id="spYes" class="b1">认识 ✓</button>
+      <button id="spNo" class="b2">不认识</button>
+    </div>
+    <div class="hint" style="text-align:center">右滑=认识，左滑=不认识。不认识的会留在下一轮再冒出来，直到你全认识为止。</div>
+  </section>
+
+  <section id="vDone" class="view">
+    <div class="doneBox">
+      <div class="doneT" id="doneT">这一轮完了</div>
+      <div class="doneList" id="doneList"></div>
+      <button id="againBtn" class="big">再来一轮</button>
+      <button id="homeBtn" class="ghost">回首页</button>
+    </div>
+  </section>
+
+  <section id="vWrong" class="view">
+    <div class="hd2">
+      <button id="wBack" class="mini">← 返回</button>
+      <div class="left">错题本</div>
+    </div>
+    <div class="hint">答错过的卡都在这儿，按错得多少从上往下排。点下面的按钮，只练它们。</div>
+    <div id="wList" class="wList"></div>
+    <button id="wStart" class="big">狂刷错题</button>
+  </section>
+
+</div>
+
+<script>
+var DATA = [{"en":"cut back on","zh":"减少，削减（开支、摄入量）","ex":"Junk-food lovers who try to cut back on fries or chocolate may experience symptoms similar to drug withdrawal.（第3套·选词填空）","cat":"动词+介词"},{"en":"cut down on","zh":"减少（摄入、使用）","ex":"People attempting to cut down on highly processed foods experience withdrawal-like symptoms.（第3套·选词填空）","cat":"动词+介词"},{"en":"rely on","zh":"依靠，依赖","ex":"The 950 people living there rely on solar and wind energy, and bottled gas for cooking.（第1套·长篇阅读D）","cat":"动词+介词"},{"en":"point to","zh":"表明；指向","ex":"Some evidence points to humans being born cooperative.（第1套·仔细阅读二）","cat":"动词+介词"},{"en":"attribute A to B","zh":"把A归因于B","ex":"They attribute their own successes to external circumstances.（第2套·仔细阅读一）","cat":"动词+介词"},{"en":"associate A with B","zh":"把A与B联系起来","ex":"People with a heightened ability learn to associate “good things” with the bitter taste.（第2套·选词填空）","cat":"动词+介词"},{"en":"be associated with","zh":"与……有关；伴随","ex":"Dementia is typically associated with declines in cognitive function.（第2套·长篇阅读G）","cat":"动词+介词"},{"en":"result from","zh":"由……造成","ex":"Dementia is not temporary forgetfulness that might result from an infection.（第2套·长篇阅读F）","cat":"动词+介词"},{"en":"interfere with","zh":"妨碍，干扰","ex":"These changes are severe enough to interfere with social or occupational functioning.（第2套·长篇阅读E）","cat":"动词+介词"},{"en":"participate in","zh":"参加，参与","ex":"University students should be required to participate in at least one research project.（第1套·写作）","cat":"动词+介词"},{"en":"engage in","zh":"从事，参与","ex":"It protects us from engaging in activities that can be perceived as morally wrong.（第3套·仔细阅读一）","cat":"动词+介词"},{"en":"protect sb from doing","zh":"保护……免于（做）","ex":"It protects us from eating or touching things that could be dangerous for us.（第3套·仔细阅读一）","cat":"动词+介词"},{"en":"prevent sb/sth from doing","zh":"阻止……做","ex":"What measures can be taken to prevent plastic objects from fragmenting?（第1套·听力Q21）","cat":"动词+介词"},{"en":"refrain from doing","zh":"克制不做","ex":"Refrain from acting on impulse.（第2套·阅读Q47选项）","cat":"动词+介词"},{"en":"depend on","zh":"取决于；依赖","ex":"Answers become less definitive depending on the product under consideration.（第1套·仔细阅读一）","cat":"动词+介词"},{"en":"devote A to B","zh":"把A投入到B；献身于","ex":"…if the food industry devoted as much research and money to organic farming as it does conventional agriculture.（第1套·仔细阅读一）","cat":"动词+介词"},{"en":"be linked to","zh":"与……有关联","ex":"…the controversial pesticides that have been linked to shrinking bee populations worldwide.（第1套·仔细阅读一）","cat":"动词+介词"},{"en":"serve as","zh":"充当，起……作用","ex":"Bitterness often serves as a warning mechanism.（第2套·选词填空）","cat":"动词+介词"},{"en":"consist of","zh":"由……组成","ex":"The pentatonic scale consists of five notes.（第2套·仔细阅读二）","cat":"动词+介词"},{"en":"comprise","zh":"由……组成；包含","ex":"The police force comprises a husband and wife.（第1套·长篇阅读D）","cat":"动词+介词"},{"en":"adapt (oneself) to","zh":"适应","ex":"They studied how animals adapted themselves to life in zoos.（第1套·听力Q3）","cat":"动词+介词"},{"en":"be adjusted according to","zh":"根据……加以调整","ex":"Real income is money earned and then adjusted according to the cost of living.（第1套·选词填空）","cat":"动词+介词"},{"en":"take … into account","zh":"把……考虑在内","ex":"It does not take into account unemployment, pollution, health, life expectancy, or free time.（第1套·选词填空）","cat":"动词+介词"},{"en":"put off","zh":"推迟，延缓","ex":"…it is not entirely clear why exercise helps put off or prevent Alzheimer's.（第2套·长篇阅读K）","cat":"动词+介词"},{"en":"set in","zh":"（疾病、坏天气等）开始，到来","ex":"Maintaining a healthy lifestyle in mid-life, decades before disease sets in, makes sense.（第2套·长篇阅读J）","cat":"动词+介词"},{"en":"pay off","zh":"有回报，见成效","ex":"The message isn't that everyone needs to run marathons, but a healthy lifestyle pays off.（第2套·长篇阅读L）","cat":"动词+介词"},{"en":"give way to","zh":"让位于，被……取代","ex":"It may give way to cooperating in the long run.（第1套·阅读Q51选项）","cat":"动词+介词"},{"en":"take place","zh":"发生，进行","ex":"Evolutionary processes take place at the group level.（第1套·仔细阅读二）","cat":"动词+介词"},{"en":"make sense","zh":"讲得通，有道理","ex":"It makes sense that exercising in mid-life would affect the risk.（第2套·长篇阅读I）","cat":"动词+介词"},{"en":"play a role in","zh":"在……中起作用","ex":"…barriers that may play a role in people dropping out of treatments.（第3套·选词填空）","cat":"动词+介词"},{"en":"shed light on","zh":"揭示，阐明","ex":"The findings may also shed light on the barriers people face when changing eating habits.（第3套·选词填空）","cat":"动词+介词"},{"en":"raise awareness","zh":"提高（对……的）意识","ex":"Raising awareness of withdrawal symptoms can help individuals prepare coping strategies.（第3套·选词填空）","cat":"动词+介词"},{"en":"lose interest in","zh":"对……失去兴趣","ex":"You don't want your future employer to lose interest in the conversation.（第3套·长篇阅读K）","cat":"动词+介词"},{"en":"get one's point across","zh":"把观点讲清楚","ex":"You might be eager to get your point across or talk about your experience.（第3套·长篇阅读H）","cat":"动词+介词"},{"en":"wrap up","zh":"结束，收尾","ex":"After wrapping up a phone interview, it is typical that the interviewer will ask…（第3套·长篇阅读E）","cat":"动词+介词"},{"en":"drop out of","zh":"退出，中途放弃","ex":"…may play a role in people dropping out of treatments.（第3套·选词填空）","cat":"动词+介词"},{"en":"turn down","zh":"拒绝；调低","ex":"…the island council turned down Paul McCartney's application to buy a property.（第1套·长篇阅读L）","cat":"动词+介词"},{"en":"break down into","zh":"把……分解成","ex":"It's hard to maintain statistical significance while breaking the group down into sub-categories.（第2套·长篇阅读H）","cat":"动词+介词"},{"en":"get to know","zh":"逐渐了解","ex":"The point of a phone interview is to focus on getting to know a candidate.（第3套·长篇阅读B）","cat":"动词+介词"},{"en":"be taken with","zh":"被……吸引，喜欢","ex":"Our daughter was especially taken with Hilde's narrating of the Maori myth.（第1套·长篇阅读H）","cat":"动词+介词"},{"en":"be plagued by","zh":"被……困扰","ex":"…people who are permanently plagued by a massive amount of self-doubt.（第2套·仔细阅读一）","cat":"动词+介词"},{"en":"account for","zh":"占（比例）；解释","ex":"They account for nearly half of the average American diet.（第2套·听力Q19）","cat":"动词+介词"},{"en":"step out of","zh":"走出；暂时离开","ex":"…the researchers stepped out of the lab to conduct a field experiment.（第3套·仔细阅读二）","cat":"动词+介词"},{"en":"get underway","zh":"开始进行","ex":"Several lifestyle studies are getting underway soon.（第2套·长篇阅读N）","cat":"动词+介词"},{"en":"look at","zh":"研究，考察","ex":"…no studies have looked at whether reducing junk food can trigger withdrawal symptoms.（第3套·选词填空）","cat":"动词+介词"},{"en":"be defined as","zh":"被定义为","ex":"The Impostor Phenomenon is not defined as a mental illness.（第2套·仔细阅读一）","cat":"动词+介词"},{"en":"be believed to","zh":"据信，人们认为","ex":"Alzheimer's and other dementias are believed to begin 15–20 years before symptoms appear.（第2套·长篇阅读I）","cat":"动词+介词"},{"en":"be expected to","zh":"应当，被期望","ex":"…candidates are expected to go into them prepared with as much information as possible.（第3套·长篇阅读A）","cat":"动词+介词"},{"en":"be likely to","zh":"很可能","ex":"Women who were highly fit in mid-life were nearly 90% less likely to get dementia.（第2套·长篇阅读A）","cat":"动词+介词"},{"en":"be liable to","zh":"易于，倾向于","ex":"They are more liable to have depression.（第2套·阅读Q50选项）","cat":"动词+介词"},{"en":"be indicative of","zh":"表明，显示","ex":"…it's also indicative of someone who isn't very detail-oriented.（第3套·长篇阅读F）","cat":"动词+介词"},{"en":"be accompanied by","zh":"伴随着","ex":"A permanent underestimation of one's abilities is often accompanied by the fear of being exposed.（第2套·仔细阅读一）","cat":"动词+介词"},{"en":"be involved in","zh":"参与；涉及","ex":"David Knopman, who was not involved in the study…（第2套·长篇阅读J）","cat":"动词+介词"},{"en":"be compared to/with","zh":"与……相比；被比作","ex":"…compared to 25% of those with medium fitness.（第2套·长篇阅读C）","cat":"动词+介词"},{"en":"refer to","zh":"指称，提及","ex":"…when we refer to disgust in relation to moral issues.（第3套·仔细阅读一）","cat":"动词+介词"},{"en":"highlight … as","zh":"把……突出为","ex":"Other work highlights specific genes as key players.（第1套·仔细阅读二）","cat":"动词+介词"},{"en":"hold true","zh":"成立，适用","ex":"It does not hold true in every situation.（第3套·阅读Q52选项）","cat":"动词+介词"},{"en":"count on","zh":"依靠，指望","ex":"They will count on good fortune for success.（第2套·阅读Q49选项）","cat":"动词+介词"},{"en":"credit A to B","zh":"把A归功于B","ex":"Credit all their successes to hard work.（第2套·阅读Q47选项）","cat":"动词+介词"},{"en":"internalise … as","zh":"把……内化为","ex":"Failures, on the other hand, are always internalised as the result of their own shortcomings.（第2套·仔细阅读一）","cat":"动词+介词"},{"en":"be worth","zh":"值得（做）","ex":"Is organic food worth the higher price?（第1套·仔细阅读一）","cat":"动词+介词"},{"en":"catch sight of","zh":"看到，瞥见","ex":"Like a lot of spots in New Zealand, there are whale-watching trips and you might just catch sight of sharks.（第1套·长篇阅读E）","cat":"动词+介词"},{"en":"differ from … in","zh":"在……方面与……不同","ex":"They differ from each other in their behavior patterns.（第1套·阅读Q52选项）","cat":"动词+介词"},{"en":"be shaped by","zh":"由……塑造","ex":"…whether these tendencies are shaped by our genes or environment.（第1套·仔细阅读二）","cat":"动词+介词"},{"en":"focus on","zh":"集中于，专注于","ex":"The point of a phone interview is to focus on getting to know a candidate.（第3套·长篇阅读B）","cat":"动词+介词"},{"en":"lead sb to do","zh":"导致某人做","ex":"…could lead us to mistakenly feel that a stranger does actually know us.（第3套·仔细阅读二）","cat":"动词+介词"},{"en":"come together","zh":"聚集，走到一起","ex":"…seeing musicians from different cultures come together and perform as a group.（第2套·仔细阅读二）","cat":"动词+介词"},{"en":"bring … together","zh":"把……凝聚在一起","ex":"It has the potential to bring people together in peace and harmony.（第2套·仔细阅读二）","cat":"动词+介词"},{"en":"work together","zh":"协作，共同努力","ex":"We routinely work together to reach goals and help out in times of need.（第1套·仔细阅读二）","cat":"动词+介词"},{"en":"help out","zh":"帮忙，协助","ex":"…work together to reach goals and help out in times of need.（第1套·仔细阅读二）","cat":"动词+介词"},{"en":"set aside","zh":"把……搁置一旁，抛开","ex":"One recent study tested people's willingness to set aside selfish interests.（第1套·仔细阅读二）","cat":"动词+介词"},{"en":"take measures","zh":"采取措施","ex":"What measures can be taken to prevent plastic objects from fragmenting?（第1套·听力Q21）","cat":"动宾搭配"},{"en":"take steps","zh":"采取步骤，采取措施","ex":"They have taken various steps to get more funding.（第2套·听力Q5）","cat":"动宾搭配"},{"en":"make decisions","zh":"作决定","ex":"Consumers tend to make decisions on the spot.（第1套·听力Q17）","cat":"动宾搭配"},{"en":"draw attention to","zh":"把注意力吸引到","ex":"Draw consumers' attention to the luxury goods symbolizing quality life.（第1套·听力Q18）","cat":"动宾搭配"},{"en":"leave sb the impression","zh":"给某人留下印象","ex":"Leave consumers the impression they are doing nothing manipulative.（第1套·听力Q18）","cat":"动宾搭配"},{"en":"make an effort","zh":"作出努力","ex":"In an effort to solve this controversy, historians have attempted to define…（第1套·选词填空）","cat":"动宾搭配"},{"en":"have an impact on","zh":"对……有影响","ex":"…making “dramatic improvements” to reduce its impact on the environment.（第1套·仔细阅读一）","cat":"动宾搭配"},{"en":"gain an advantage","zh":"获得优势","ex":"Humans cooperate to gain some advantage, such as boosting reputation.（第1套·仔细阅读二）","cat":"动宾搭配"},{"en":"reach a goal","zh":"达成目标","ex":"We routinely work together to reach goals.（第1套·仔细阅读二）","cat":"动宾搭配"},{"en":"make progress","zh":"取得进展","ex":"Genetic studies have made some progress toward identifying their biological roots.（第1套·仔细阅读二）","cat":"动宾搭配"},{"en":"conduct a study/experiment","zh":"开展研究／实验","ex":"Researchers conducted the study to understand how genetics influences consumption.（第2套·选词填空）","cat":"动宾搭配"},{"en":"deliver a performance","zh":"交出表现，完成任务","ex":"…despite delivering a good performance.（第2套·仔细阅读一）","cat":"动宾搭配"},{"en":"put effort into","zh":"在……上投入精力","ex":"Many people think they don't have to put as much effort into researching the role.（第3套·长篇阅读J）","cat":"动宾搭配"},{"en":"focus one's attention on","zh":"把注意力聚焦于","ex":"They will focus their attention on external factors.（第2套·阅读Q49选项）","cat":"动宾搭配"},{"en":"cross off","zh":"（从清单上）划掉","ex":"It might be tempting to cross something off your to-do list while on a phone interview.（第3套·长篇阅读C）","cat":"动宾搭配"},{"en":"show sb round","zh":"带某人参观","ex":"…who showed us round her studio at Shoal Bay harbour.（第1套·长篇阅读K）","cat":"动宾搭配"},{"en":"put forward","zh":"提出（建议、方案）","ex":"You are invited to put forward a proposal to the university.（第3套·写作）","cat":"动宾搭配"},{"en":"make a proposal","zh":"提出建议","ex":"You are now to write an essay to make your proposal.（第3套·写作）","cat":"动宾搭配"},{"en":"make use of","zh":"利用","ex":"…the way it is made use of.（第2套·阅读Q55选项）","cat":"动宾搭配"},{"en":"lose consciousness","zh":"失去意识","ex":"He lost all consciousness.（第2套·听力Q4）","cat":"动宾搭配"},{"en":"send a signal","zh":"发出信号","ex":"His use of a mirror to send a signal.（第2套·听力Q3）","cat":"动宾搭配"},{"en":"pay for","zh":"为……付款","ex":"His son had used his cell phone to pay for playing a game.（第1套·听力Q1）","cat":"动宾搭配"},{"en":"book tickets","zh":"订票","ex":"To book tickets for a musical.（第2套·听力Q8）","cat":"动宾搭配"},{"en":"have sth done","zh":"让某事被做（使役）","ex":"To have her personal computer repaired.（第2套·听力Q8）","cat":"动宾搭配"},{"en":"switch off","zh":"关掉（电器）","ex":"He has switched off his phone.（第2套·听力Q12）","cat":"动宾搭配"},{"en":"text back","zh":"回短信","ex":"He hasn't got the time to text back.（第2套·听力Q12）","cat":"动宾搭配"},{"en":"surf the net","zh":"上网，浏览网络","ex":"His high frequency of surfing the net.（第2套·听力Q13）","cat":"动宾搭配"},{"en":"keep a pet","zh":"养宠物","ex":"They had at least one pet.（第1套·听力Q22）","cat":"动宾搭配"},{"en":"take in","zh":"摄入，吸收","ex":"They are taking in a lot of plastic.（第1套·听力Q19）","cat":"动宾搭配"},{"en":"order food","zh":"点餐，订餐","ex":"His son had ordered food from several restaurants.（第1套·听力Q1）","cat":"动宾搭配"},{"en":"while away","zh":"消磨（时间）","ex":"…where we whiled away a good hour sitting in the pools.（第1套·长篇阅读J）","cat":"动宾搭配"},{"en":"rub out","zh":"擦掉，抹去","ex":"…the dawn slowly started to rub out the stars on the horizon.（第1套·长篇阅读A）","cat":"动宾搭配"},{"en":"bump down","zh":"颠簸着降落","ex":"…until we bumped down on the grass at Claris Airport.（第1套·长篇阅读C）","cat":"动宾搭配"},{"en":"be sensitive to","zh":"对……敏感","ex":"…people who are particularly sensitive to the bitter taste of caffeine.（第2套·选词填空）","cat":"形容词+介词"},{"en":"be familiar with","zh":"熟悉，通晓","ex":"Get familiar with all the details of his job description.（第1套·听力Q13）","cat":"形容词+介词"},{"en":"be addicted to / addiction to","zh":"沉迷于；对……上瘾","ex":"His addiction to mobile phone games.（第2套·听力Q13）","cat":"形容词+介词"},{"en":"be tied to","zh":"与……紧密相连","ex":"Music is tied to specific perceptual, mental, and emotional faculties.（第2套·仔细阅读二）","cat":"形容词+介词"},{"en":"be typical of/for","zh":"是……的典型；……很常见","ex":"It is typical for dementia to worsen with the passage of time.（第2套·长篇阅读题干36）","cat":"形容词+介词"},{"en":"be free of","zh":"没有，免于","ex":"To keep the district free of debt.（第2套·听力Q7）","cat":"形容词+介词"},{"en":"be surrounded by","zh":"被……环绕","ex":"It is surrounded by Spanish-style houses.（第1套·听力Q10）","cat":"形容词+介词"},{"en":"be covered with","zh":"覆盖着","ex":"It is covered with wild grass.（第1套·听力Q10）","cat":"形容词+介词"},{"en":"be separated from","zh":"与……分开","ex":"…where the water is separated from the sea in a private rock pool.（第1套·长篇阅读K）","cat":"形容词+介词"},{"en":"be made of","zh":"由……制成（看得出原料）","ex":"…a huge circular table made of one of the most ancient trees in the world.（第1套·长篇阅读I）","cat":"形容词+介词"},{"en":"be beneficial to","zh":"对……有益","ex":"…the study gives the message that a healthy lifestyle is beneficial.（第2套·长篇阅读题干37）","cat":"形容词+介词"},{"en":"be eager to","zh":"渴望，急于","ex":"You might be eager to get your point across.（第3套·长篇阅读H）","cat":"形容词+介词"},{"en":"be annoyed to do / at","zh":"对……感到恼火","ex":"Many interviewers are annoyed to see people who decide to multitask.（第3套·长篇阅读C）","cat":"形容词+介词"},{"en":"be unique to","zh":"为……所独有","ex":"…the degree to which we act cooperatively or selfishly is unique to each individual.（第1套·仔细阅读二）","cat":"形容词+介词"},{"en":"be similar to","zh":"与……相似","ex":"…may experience symptoms similar to drug withdrawal.（第3套·选词填空）","cat":"形容词+介词"},{"en":"be prepared with","zh":"备有，带着","ex":"…candidates are expected to go into them prepared with as much information as possible.（第3套·长篇阅读A）","cat":"形容词+介词"},{"en":"be hard/difficult to do","zh":"难以……","ex":"Their contribution to calorie consumption is hard to determine.（第2套·听力Q19）","cat":"形容词+介词"},{"en":"be impossible to do","zh":"不可能……","ex":"…happiness is impossible to measure.（第1套·选词填空）","cat":"形容词+介词"},{"en":"be certain that","zh":"确信，肯定","ex":"It is almost certain that every other culture has used music in the very same way.（第2套·仔细阅读二）","cat":"形容词+介词"},{"en":"be based on","zh":"以……为基础","ex":"Based on the participants' self-reported symptoms…（第3套·选词填空）","cat":"形容词+介词"},{"en":"be annoyed at","zh":"对……恼火","ex":"…this bothers me personally.（第3套·长篇阅读F）","cat":"形容词+介词"},{"en":"be capable of","zh":"有能力做","ex":"…people are not helpless in the face of one of the most feared diseases.（第2套·长篇阅读I）","cat":"形容词+介词"},{"en":"the key to","zh":"……的关键","ex":"The key to success during a phone interview is clear and concise answers.（第3套·长篇阅读K）","cat":"名词+介词"},{"en":"the degree to which","zh":"……的程度","ex":"The degree to which we find these flavors bitter is, in part, determined by your genes.（第2套·选词填空）","cat":"名词+介词"},{"en":"an approach to","zh":"对……的方法／途径","ex":"…their own specific style and approach to music.（第2套·仔细阅读二）","cat":"名词+介词"},{"en":"the impact on","zh":"对……的影响","ex":"…to reduce its impact on the environment.（第1套·仔细阅读一）","cat":"名词+介词"},{"en":"the risk of","zh":"……的风险","ex":"…the risk of groundwater contamination from organic farming is lower.（第1套·仔细阅读一）","cat":"名词+介词"},{"en":"a tendency to","zh":"……的倾向","ex":"…people with a tendency to exhibit the Impostor Phenomenon.（第2套·仔细阅读一）","cat":"名词+介词"},{"en":"the ability to","zh":"做……的能力","ex":"…an ability to detect the bitterness of caffeine.（第2套·选词填空）","cat":"名词+介词"},{"en":"the willingness to","zh":"做……的意愿","ex":"…people's willingness to set aside selfish interests.（第1套·仔细阅读二）","cat":"名词+介词"},{"en":"the fear that / of","zh":"对……的担忧","ex":"…the fear that this supposed deception will be exposed.（第2套·仔细阅读一）","cat":"名词+介词"},{"en":"the assumption that","zh":"……的假设","ex":"…the assumption that people with the tendency devalue their performance.（第2套·仔细阅读一）","cat":"名词+介词"},{"en":"the idea that","zh":"……的观念","ex":"The idea that food may be addictive after “heavy” use is a controversial subject.（第3套·选词填空）","cat":"名词+介词"},{"en":"evidence that","zh":"……的证据","ex":"…the first evidence that these withdrawal-like symptoms can occur.（第3套·选词填空）","cat":"名词+介词"},{"en":"a variety of","zh":"各种各样的","ex":"…depends on a variety of genetic and environmental influences.（第1套·仔细阅读二）","cat":"名词+介词"},{"en":"a range of","zh":"一系列的","ex":"They completed a range of intelligence tests.（第2套·仔细阅读一）","cat":"名词+介词"},{"en":"a series of","zh":"一连串的","ex":"…a series of lifestyle interventions.（第2套·长篇阅读N）","cat":"名词+介词"},{"en":"a number of","zh":"若干，许多","ex":"…in a number of housing developments in disadvantaged areas.（第3套·仔细阅读二）","cat":"名词+介词"},{"en":"the bulk of","zh":"大部分","ex":"…the bulk of literature has suggested that aerobic exercise is what you need.（第2套·长篇阅读M）","cat":"名词+介词"},{"en":"plenty of","zh":"大量的","ex":"…plenty of bays and a few mountainous areas.（第1套·长篇阅读E）","cat":"名词+介词"},{"en":"an amount of","zh":"……的数量","ex":"…a massive amount of self-doubt.（第2套·仔细阅读一）","cat":"名词+介词"},{"en":"the lack of","zh":"缺乏","ex":"It's not just the lack of light but the lack of noise that's so delightful.（第1套·长篇阅读D）","cat":"名词+介词"},{"en":"a lack of","zh":"缺乏","ex":"A lack of nutrients like fiber.（第2套·听力Q20）","cat":"名词+介词"},{"en":"the correlation between","zh":"……之间的相关性","ex":"…there's a correlation between exercise and decreased dementia risk.（第2套·长篇阅读C）","cat":"名词+介词"},{"en":"an association between","zh":"……之间的联系","ex":"…an association between dementia and declines in hearing.（第2套·长篇阅读G）","cat":"名词+介词"},{"en":"the difference between","zh":"……之间的差异","ex":"There is no big difference between organic and non-organic products.（第1套·仔细阅读一）","cat":"名词+介词"},{"en":"the reason for","zh":"……的原因","ex":"…such as their favourite food, hobbies, or reasons for joining the police force.（第3套·仔细阅读二）","cat":"名词+介词"},{"en":"attention to","zh":"对……的关注","ex":"Draw consumers' attention to the luxury goods.（第1套·听力Q18）","cat":"名词+介词"},{"en":"the point of","zh":"……的意义／要点","ex":"The point of a phone interview is to focus on getting to know a candidate.（第3套·长篇阅读B）","cat":"名词+介词"},{"en":"the purpose behind","zh":"……背后的目的","ex":"…the purposes behind music are very similar across the board.（第2套·仔细阅读二）","cat":"名词+介词"},{"en":"a barrier to","zh":"……的障碍","ex":"…barriers people face when changing eating habits.（第3套·选词填空）","cat":"名词+介词"},{"en":"vulnerability to","zh":"易受……伤害","ex":"…people who suffer from it show a higher vulnerability to depression.（第2套·仔细阅读一）","cat":"名词+介词"},{"en":"contribution to","zh":"对……的贡献","ex":"Their contribution to calorie consumption is hard to determine.（第2套·听力Q19）","cat":"名词+介词"},{"en":"a sense of","zh":"……感","ex":"A sense of purpose.（第1套·听力Q23）","cat":"名词+介词"},{"en":"chances of","zh":"……的可能性","ex":"…groups of highly cooperative individuals have higher chances of survival.（第1套·仔细阅读二）","cat":"名词+介词"},{"en":"the secret to","zh":"……的秘诀","ex":"…the key to success during a phone interview is clear and concise answers.（第3套·长篇阅读K）","cat":"名词+介词"},{"en":"in terms of","zh":"就……而言；从……角度","ex":"…write a response by stating what you think of the proposal in terms of its necessity and practicality.（第1套·写作）","cat":"介词短语"},{"en":"on the one hand … on the other hand","zh":"一方面……另一方面","ex":"On the one hand, your family dinner table deserves only the best. On the other hand, your wallet can only stretch so far.（第1套·仔细阅读一）","cat":"介词短语"},{"en":"in fact","zh":"事实上（常用来转折或强调）","ex":"Organic products don't necessarily have fewer pesticides—in fact, they may have more.（第1套·仔细阅读一）","cat":"介词短语"},{"en":"in addition","zh":"此外，另外","ex":"In addition, people who were more sensitive to quinine's bitter flavors tended to avoid coffee.（第2套·选词填空）","cat":"介词短语"},{"en":"in reality","zh":"实际上，事实上","ex":"…what we are feeling is in reality anger.（第3套·仔细阅读一）","cat":"介词短语"},{"en":"in effect","zh":"实际上，事实上","ex":"…Waiheke Island (now in effect a suburb of Auckland).（第1套·长篇阅读F）","cat":"介词短语"},{"en":"on the whole","zh":"总体上，大体而言","ex":"On the whole, organic agriculture may have a smaller environmental footprint.（第1套·仔细阅读一）","cat":"介词短语"},{"en":"put another way","zh":"换句话说","ex":"Put another way, people with a heightened ability to taste bitterness learn to associate “good things” with it.（第2套·选词填空）","cat":"介词短语"},{"en":"to be frank","zh":"坦白说","ex":"To be frank, it's simply too early in the process for you to bring up salary expectations.（第3套·长篇阅读D）","cat":"介词短语"},{"en":"needless to say","zh":"不用说，显而易见","ex":"Needless to say, this doesn't reflect well on your level of interest in the position.（第3套·长篇阅读C）","cat":"介词短语"},{"en":"in part","zh":"部分地；在某种程度上","ex":"The degree to which we find these flavors bitter is, in part, determined by your genes.（第2套·选词填空）","cat":"介词短语"},{"en":"in advance","zh":"提前，事先","ex":"…can help individuals prepare coping strategies in advance.（第3套·选词填空）","cat":"介词短语"},{"en":"in place","zh":"到位，就绪；在适当位置","ex":"…a recruiter who has a structured interview guide in place.（第3套·长篇阅读G）","cat":"介词短语"},{"en":"in the face of","zh":"面对（困难、危险）","ex":"…the study shows people are not helpless in the face of one of the most feared diseases.（第2套·长篇阅读I）","cat":"介词短语"},{"en":"on the part of","zh":"在……方面；由……所做的","ex":"…phone calls require zero energy on the part of the candidate.（第3套·长篇阅读A）","cat":"介词短语"},{"en":"regardless of","zh":"不管，不顾","ex":"…received positive feedback on them, regardless of their actual performance.（第2套·仔细阅读一）","cat":"介词短语"},{"en":"in relation to","zh":"关于，与……有关","ex":"…when we refer to disgust in relation to moral issues.（第3套·仔细阅读一）","cat":"介词短语"},{"en":"of special relevance","zh":"特别相关的是（后接倒装）","ex":"Of special relevance are parents-children conversations about emotions.（第3套·仔细阅读一）","cat":"介词短语"},{"en":"ahead of time","zh":"提前，事先","ex":"…practicing answers to questions you know will be asked ahead of time.（第3套·长篇阅读K）","cat":"介词短语"},{"en":"at an agreed-upon time","zh":"在约定好的时间","ex":"…to call me as opposed to calling them at an agreed-upon time.（第3套·长篇阅读F）","cat":"介词短语"},{"en":"at a discount","zh":"打折，以折扣价","ex":"They could buy their first electric bike at a discount.（第1套·听力Q6）","cat":"介词短语"},{"en":"for good reason","zh":"有充分的理由","ex":"…phone interviews are an unavoidable part of the job interview process, and for good reason.（第3套·长篇阅读A）","cat":"介词短语"},{"en":"on the spot","zh":"当场，立即","ex":"Consumers tend to make decisions on the spot.（第1套·听力Q17）","cat":"介词短语"},{"en":"from a … point of view","zh":"从……角度来看","ex":"From a nutrition point of view, there is no difference between organic and traditionally grown products.（第1套·仔细阅读一）","cat":"介词短语"},{"en":"in times of need","zh":"在需要帮助的时候","ex":"We routinely work together to reach goals and help out in times of need.（第1套·仔细阅读二）","cat":"介词短语"},{"en":"at risk","zh":"处于风险之中；有危险的","ex":"…which will offer at-risk adults, ages 60–79, a series of lifestyle interventions.（第2套·长篇阅读N）","cat":"介词短语"},{"en":"in the long run","zh":"从长远来看","ex":"…players who cooperated did better in the long run.（第1套·仔细阅读二）","cat":"介词短语"},{"en":"in the short term","zh":"在短期内","ex":"It may bring certain benefits in the short term.（第1套·阅读Q51选项）","cat":"介词短语"},{"en":"over time","zh":"随着时间的推移","ex":"Dementia typically gets worse over time.（第2套·长篇阅读F）","cat":"介词短语"},{"en":"over the past 10 years","zh":"在过去十年里（常配现在完成时）","ex":"Over the past 10 years, Canada has seen more food-safety recalls for organic products.（第1套·仔细阅读一）","cat":"介词短语"},{"en":"against all the odds","zh":"出乎意料地，克服重重困难","ex":"Our first empty sick bag against all the odds… Things were looking up.（第1套·长篇阅读C）","cat":"介词短语"},{"en":"in peace and harmony","zh":"和平和睦地","ex":"It has the potential to bring people together in peace and harmony.（第2套·仔细阅读二）","cat":"介词短语"},{"en":"in one's 80s","zh":"在某人八十多岁时","ex":"As many as half of people in their 80s have some form of dementia.（第2套·长篇阅读E）","cat":"介词短语"},{"en":"at age 90","zh":"在九十岁时","ex":"…the few highly fit women who did develop dementia became symptomatic at age 90 on average.（第2套·长篇阅读C）","cat":"介词短语"},{"en":"in disadvantaged areas","zh":"在贫困／条件较差的地区","ex":"…a number of housing developments in disadvantaged areas.（第3套·仔细阅读二）","cat":"介词短语"},{"en":"at the group level","zh":"在群体层面上","ex":"Evolutionary processes take place at the group level.（第1套·仔细阅读二）","cat":"介词短语"},{"en":"by chance / by luck","zh":"靠运气，偶然","ex":"…any success is due to external circumstances or just luck and chance.（第2套·仔细阅读一）","cat":"介词短语"},{"en":"by + 幅度","zh":"以……的幅度（表增减）","ex":"…women who were highly fit decreased their risk of dementia by 88%.（第2套·长篇阅读C）","cat":"介词短语"},{"en":"for example","zh":"例如","ex":"For example, when asked where you see yourself in five years…（第3套·长篇阅读B）","cat":"介词短语"},{"en":"such as","zh":"例如，诸如","ex":"…things that could be dangerous for us, such as raw meat or insects.（第3套·仔细阅读一）","cat":"介词短语"},{"en":"as a result","zh":"结果，因此","ex":"As a result, we act more honestly around them, according to a recent study in Nature.（第3套·仔细阅读二）","cat":"介词短语"},{"en":"at least","zh":"至少","ex":"They had at least one pet.（第1套·听力Q22）","cat":"介词短语"},{"en":"due to","zh":"由于，因为","ex":"They think that any success is due to external circumstances.（第2套·仔细阅读一）","cat":"介词短语"},{"en":"instead","zh":"相反，反而（副词，非介词）","ex":"Dementia isn't a disease. Instead, it's a group of symptoms caused by other conditions.（第2套·长篇阅读E）","cat":"介词短语"},{"en":"as opposed to","zh":"而不是（对比两种做法）","ex":"…to call me as opposed to calling them at an agreed-upon time.（第3套·长篇阅读F）","cat":"介词短语"},{"en":"in order to","zh":"为了（表目的）","ex":"…in order to be clear on what you're going to say.（第3套·长篇阅读K）","cat":"介词短语"},{"en":"according to","zh":"根据；按照","ex":"Real income is money earned and then adjusted according to the cost of living.（第1套·选词填空）","cat":"介词短语"},{"en":"apart from","zh":"除……之外","ex":"Apart from the cost, the biggest problem with this plan is its practicality.（拓展句型，供写作使用）","cat":"介词短语"},{"en":"to do（不定式）","zh":"将来、目的、一次性动作；功能：主语、宾语、表语、定语、目的／结果状语","ex":"","cat":"非谓语"},{"en":"doing（动名词）","zh":"抽象的、习惯性的动作；功能：主语、宾语、介词宾语、表语","ex":"","cat":"非谓语"},{"en":"doing（现在分词）","zh":"主动、进行；功能：定语、状语、宾语补足语","ex":"","cat":"非谓语"},{"en":"done（过去分词）","zh":"被动、完成；功能：定语、状语、宾语补足语、表语","ex":"","cat":"非谓语"},{"en":"be worth doing","zh":"值得做（worth 后接动名词，主动形式表被动）","ex":"Is organic food worth the higher price?（第1套·仔细阅读一）","cat":"非谓语"},{"en":"be best avoided","zh":"最好避免（被动动名词结构）","ex":"The question regarding pay is also best avoided.（第3套·长篇阅读D）","cat":"非谓语"},{"en":"recommend/suggest doing","zh":"建议做（不接 to do）","ex":"He recommends practicing answers to questions…（第3套·长篇阅读K）","cat":"非谓语"},{"en":"have difficulty (in) doing","zh":"做……有困难","ex":"…it's hard to maintain statistical significance.（第2套·长篇阅读H）","cat":"非谓语"},{"en":"spend time (in) doing","zh":"花时间做","ex":"…where we whiled away a good hour sitting in the pools.（第1套·长篇阅读J）","cat":"非谓语"},{"en":"It is no use doing","zh":"做……没有用","ex":"It is no use complaining about the price.（拓展句型）","cat":"非谓语"},{"en":"look forward to doing","zh":"期待做（to 为介词）","ex":"We look forward to hearing from you.（拓展句型）","cat":"非谓语"},{"en":"be used to doing","zh":"习惯于做（to 为介词）","ex":"…people are used to ordering meals online.（拓展句型）","cat":"非谓语"},{"en":"stop doing","zh":"停止正在做的事","ex":"They stopped talking.（停止谈话）","cat":"非谓语"},{"en":"stop to do","zh":"停下来去做另一件事","ex":"They stopped to talk.（停下来开始谈）","cat":"非谓语"},{"en":"remember/forget doing","zh":"记得／忘记做过某事","ex":"I remember locking the door.","cat":"非谓语"},{"en":"remember/forget to do","zh":"记得／忘记去做某事","ex":"Remember to lock the door.","cat":"非谓语"},{"en":"try doing","zh":"试着做（看效果）","ex":"Try adding more salt.","cat":"非谓语"},{"en":"try to do","zh":"努力去做","ex":"He tried to open the door.","cat":"非谓语"},{"en":"mean doing","zh":"意味着","ex":"This means working overtime.","cat":"非谓语"},{"en":"mean to do","zh":"打算做","ex":"I didn't mean to hurt you.","cat":"非谓语"},{"en":"used to do","zh":"过去常常做","ex":"He used to smoke.","cat":"非谓语"},{"en":"be used to doing","zh":"习惯于做","ex":"He is used to smoking after dinner.","cat":"非谓语"},{"en":"needless to say","zh":"不用说","ex":"用法：句首，引出显而易见的事实","cat":"非谓语"},{"en":"compared with/to","zh":"与……相比","ex":"用法：句首或句末，引出比较对象","cat":"非谓语"},{"en":"given that","zh":"考虑到","ex":"用法：句首，引导原因状语","cat":"非谓语"},{"en":"judging from","zh":"从……判断","ex":"用法：句首，引出推断依据","cat":"非谓语"},{"en":"be worth doing","zh":"值得做","ex":"The museum is well worth visiting.","cat":"非谓语"},{"en":"have sth done","zh":"让某事被做（请人做）","ex":"I had my hair cut yesterday.","cat":"非谓语"},{"en":"keep sth done","zh":"使某物保持……状态","ex":"Keep the door locked.","cat":"非谓语"},{"en":"be made to do","zh":"被迫做","ex":"He was made to apologize.","cat":"非谓语"},{"en":"be seen doing","zh":"被看见正在做","ex":"He was seen entering the building.","cat":"非谓语"},{"en":"prevent/stop sb from doing","zh":"阻止某人做","ex":"…prevent plastic objects from fragmenting.","cat":"非谓语"},{"en":"instead of doing","zh":"而不是做","ex":"Instead of complaining, take action.","cat":"非谓语"},{"en":"as opposed to doing","zh":"而不是做（更书面）","ex":"…as opposed to calling them at an agreed-upon time.","cat":"非谓语"},{"en":"rather than do/doing","zh":"而不是","ex":"…rather than having to repeatedly ask.","cat":"非谓语"},{"en":"when, while, before, after, until, once, as, by the time","zh":"引导时间状语从句","ex":"…decades before disease sets in.（第2套·长篇阅读J）","cat":"从句句式"},{"en":"if, unless, as long as, provided that, in case","zh":"引导条件状语从句","ex":"…unless you're directly asked a question.（第3套·长篇阅读B）","cat":"从句句式"},{"en":"although, though, even if/though, while, however + adj.","zh":"引导让步状语从句","ex":"Although yields vary considerably depending on the crop.（第1套·仔细阅读一）","cat":"从句句式"},{"en":"because, since, as, now that, given that","zh":"引导原因状语从句","ex":"…given that bitterness often serves as a warning mechanism.（第2套·选词填空）","cat":"从句句式"},{"en":"so … that, such … that","zh":"引导结果状语从句","ex":"These changes are severe enough to interfere with…（第2套·长篇阅读E）","cat":"从句句式"},{"en":"so that, in order that, lest","zh":"引导目的状语从句","ex":"…in order to be clear on what you're going to say.（第3套·长篇阅读K）","cat":"从句句式"},{"en":"as … as, than, the more … the more","zh":"引导比较状语从句","ex":"As many as half of people in their 80s have some form of dementia.（第2套·长篇阅读E）","cat":"从句句式"},{"en":"as, as if, as though","zh":"引导方式状语从句","ex":"…as the research findings suggest.（拓展句型）","cat":"从句句式"},{"en":"where, wherever","zh":"引导地点状语从句","ex":"…where there are good walking tracks.（第1套·长篇阅读E）","cat":"从句句式"},{"en":"as + adj./adv. + as","zh":"和……一样","ex":"…devoted as much research and money to organic farming as it does conventional agriculture.","cat":"从句句式"},{"en":"less/more + adj. + than","zh":"不如／比……更","ex":"…were nearly 90% less likely to get dementia.","cat":"从句句式"},{"en":"not so much A as B","zh":"与其说A不如说B","ex":"…mainly about physical disgust and not so much about moral disgust.（第3套·仔细阅读一）","cat":"从句句式"},{"en":"the more …, the more …","zh":"越……越……","ex":"The more we practise, the more confident we become.（拓展句型）","cat":"从句句式"},{"en":"rather than","zh":"连词性短语；连接两个平行成分，后接 do/doing/n.：…rather than having to repeatedly ask.","ex":"","cat":"从句句式"},{"en":"instead of","zh":"介词短语；后接名词或动名词：Instead of complaining, take action.","ex":"","cat":"从句句式"},{"en":"as opposed to","zh":"介词短语；更书面，强调对比：…as opposed to calling them at an agreed-upon time.","ex":"","cat":"从句句式"},{"en":"If + 过去式, 主语 + would/could + do","zh":"与现在相反的虚拟语气","ex":"If I were you, I would apply for the position.","cat":"从句句式"},{"en":"If + had done, 主语 + would have done","zh":"与过去相反的虚拟语气","ex":"If he had studied harder, he would have passed.","cat":"从句句式"},{"en":"If + were to do, 主语 + would do","zh":"与将来相反的虚拟语气","ex":"If it were to rain, the event would be cancelled.","cat":"从句句式"},{"en":"With the rapid development of ____, an increasing number of ____ have begun to ____.","zh":"用途：引入社会现象。例：With the rapid development of artificial intelligence, an increasing number of robots have begun to appear on campus.","ex":"","cat":"写作模板"},{"en":"Recently, there has been a heated debate over whether ____.","zh":"用途：引入争议话题。例：Recently, there has been a heated debate over whether university students should be required to take part in research projects.","ex":"","cat":"写作模板"},{"en":"When it comes to ____, opinions vary from person to person.","zh":"用途：引入众说纷纭的话题。例：When it comes to the use of robots on campus, opinions vary from person to person.","ex":"","cat":"写作模板"},{"en":"It is universally acknowledged that ____, yet ____.","zh":"用途：先立共识再转折。例：It is universally acknowledged that campus life should be convenient, yet many students still struggle with daily problems.","ex":"","cat":"写作模板"},{"en":"As the saying goes, “____”, which vividly illustrates that ____.","zh":"用途：引用谚语开头（翻译题“一日为师，终身为父”可直接借用）。","ex":"","cat":"写作模板"},{"en":"Nothing is more important than ____ when we ____.","zh":"用途：强调重要性。例：Nothing is more important than a comfortable living environment when we study far from home.","ex":"","cat":"写作模板"},{"en":"There is no denying that ____, which can be illustrated by ____.","zh":"用途：先承认事实，再举例。","ex":"","cat":"写作模板"},{"en":"What matters most is not ____ but ____.","zh":"用途：对比论证，突出核心。例：What matters most is not how advanced the robots are but how well they serve students.","ex":"","cat":"写作模板"},{"en":"Take ____ as an example. ____, which proves that ____.","zh":"用途：举例论证的标准三段式。","ex":"","cat":"写作模板"},{"en":"The reason why ____ lies in the fact that ____.","zh":"用途：解释原因。例：The reason why research projects benefit students lies in the fact that they train independent thinking.","ex":"","cat":"写作模板"},{"en":"This is mainly because ____, and consequently ____.","zh":"用途：因果链。","ex":"","cat":"写作模板"},{"en":"Not only does ____, but it also ____.","zh":"用途：not only 置于句首引起部分倒装（提分点）。例：Not only do robots save students' time, but they also make campus life more efficient.","ex":"","cat":"写作模板"},{"en":"On the one hand, ____; on the other hand, ____.","zh":"用途：双面论证。","ex":"","cat":"写作模板"},{"en":"A case in point is ____, where ____.","zh":"用途：用具体场景支撑论点。","ex":"","cat":"写作模板"},{"en":"While it is true that ____, it does not mean that ____.","zh":"用途：先让步再反驳，最显思辨。例：While it is true that robots may replace some human work, it does not mean that they can replace teachers.","ex":"","cat":"写作模板"},{"en":"Admittedly, ____. Nevertheless, ____.","zh":"用途：书面语让步。","ex":"","cat":"写作模板"},{"en":"However convincing ____ may sound, ____.","zh":"用途：however + adj. 引导让步（对应第四章 4.3）。","ex":"","cat":"写作模板"},{"en":"It is not that ____; rather, ____.","zh":"用途：not … but rather 澄清误解。","ex":"","cat":"写作模板"},{"en":"In conclusion, ____ is of great significance, and it is high time that we did ____.","zh":"用途：It is high time that + 过去式（虚拟语气）。","ex":"","cat":"写作模板"},{"en":"It is advisable that the university (should) ____ so as to ____.","zh":"用途：提建议（should 可省略）。例：It is advisable that the university set up more quiet study rooms so as to improve students' efficiency.","ex":"","cat":"写作模板"},{"en":"Only in this way can we ____.","zh":"用途：only + 状语置句首引起倒装。","ex":"","cat":"写作模板"},{"en":"Only when ____ can ____ truly ____.","zh":"用途：only when 引导时间状语从句的倒装。","ex":"","cat":"写作模板"},{"en":"From my perspective, ____ deserves more attention than ____.","zh":"用途：表明个人立场。","ex":"","cat":"写作模板"},{"en":"To sum up, ____ will not only benefit ____ but also contribute to ____.","zh":"用途：总结并升华到更大层面。","ex":"","cat":"写作模板"},{"en":"There is an old saying that …","zh":"有句老话","ex":"引语开头，后接引号内容","cat":"翻译词块"},{"en":"A teacher for a day, a father for life.","zh":"一日为师，终身为父","ex":"意译，保留对偶感","cat":"翻译词块"},{"en":"impart knowledge / pass on knowledge","zh":"传授知识","ex":"impart 更书面，四级可写 pass on","cat":"翻译词块"},{"en":"how to be a decent person / the principles of being a good person","zh":"做人的道理","ex":"“道理”不能直译为 reasons","cat":"翻译词块"},{"en":"hold a grand ceremony","zh":"举行隆重的仪式","ex":"grand 修饰 ceremony 最地道","cat":"翻译词块"},{"en":"which shows that … / which is evidence of …","zh":"足见……","ex":"用 which 引导非限制性定语从句衔接","cat":"翻译词块"},{"en":"the high status of …","zh":"地位之高","ex":"status 不可数","cat":"翻译词块"},{"en":"carry forward the fine tradition","zh":"弘扬优良传统","ex":"carry forward 为固定搭配","cat":"翻译词块"},{"en":"designate … as Teachers' Day","zh":"定为教师节","ex":"designate A as B","cat":"翻译词块"},{"en":"in various ways","zh":"以各种方式","ex":"介词短语作方式状语","cat":"翻译词块"},{"en":"express one's respect for …","zh":"表达敬意","ex":"respect for 介词固定","cat":"翻译词块"},{"en":"a traditional virtue","zh":"传统美德","ex":"virtue 可数","cat":"翻译词块"},{"en":"be carried forward / be given full play","zh":"发扬光大","ex":"被动更自然","cat":"翻译词块"},{"en":"an important part of …","zh":"重要组成部分","ex":"constitute an important part of 更高级","cat":"翻译词块"},{"en":"embody / contain","zh":"蕴含","ex":"embody 表“体现”，更贴切","cat":"翻译词块"},{"en":"the warm and courteous way of hosting guests","zh":"热情有礼的待客之道","ex":"hospitality 亦可","cat":"翻译词块"},{"en":"entertain guests / host guests","zh":"招待客人","ex":"entertain 在此非“娱乐”","cat":"翻译词块"},{"en":"tastes and preferences","zh":"口味和喜好","ex":"并列名词短语","cat":"翻译词块"},{"en":"rich and delicate dishes","zh":"丰富精致的菜肴","ex":"delicate 表“精致”","cat":"翻译词块"},{"en":"great attention is paid to the seating arrangement","zh":"座位的安排非常讲究","ex":"被动句更符合英语习惯","cat":"翻译词块"},{"en":"facing the door / opposite the door","zh":"正对大门的位置","ex":"现在分词作定语","cat":"翻译词块"},{"en":"the most important guest","zh":"最重要的客人","ex":"最高级前加 the","cat":"翻译词块"},{"en":"refill the guests' glasses and plates","zh":"添酒加菜","ex":"refill 一词解决“添”","cat":"翻译词块"},{"en":"has lasted for thousands of years","zh":"延续了数千年","ex":"现在完成时","cat":"翻译词块"},{"en":"promote harmonious interpersonal communication","zh":"促进和谐的人际交往","ex":"promote 搭配 communication","cat":"翻译词块"},{"en":"exchange gifts","zh":"互赠礼物","ex":"exchange 及物，无需 with 亦可","cat":"翻译词块"},{"en":"an important etiquette / courtesy","zh":"重要礼节","ex":"etiquette 常不可数，可加 an","cat":"翻译词块"},{"en":"a material present / a material gift","zh":"物质的馈赠","ex":"gift 与 present 均可","cat":"翻译词块"},{"en":"an expression of emotion","zh":"情感的表达","ex":"of 短语作后置定语","cat":"翻译词块"},{"en":"an important bond that maintains interpersonal relationships","zh":"维系人际关系的重要纽带","ex":"bond 后接定语从句","cat":"翻译词块"},{"en":"carefully chosen","zh":"精心挑选","ex":"过去分词作定语","cat":"翻译词块"},{"en":"suit the recipient's preferences","zh":"符合接受者喜好","ex":"suit 表“适合”","cat":"翻译词块"},{"en":"deepen mutual affection","zh":"加深彼此的感情","ex":"affection 比 feeling 更书面","cat":"翻译词块"},{"en":"mutually exchanging courtesies","zh":"礼尚往来","ex":"真题已给英文，直接沿用","cat":"翻译词块"},{"en":"express one's thanks / gratitude","zh":"表达谢意","ex":"gratitude 更正式","cat":"翻译词块"},{"en":"give a gift in return","zh":"回赠礼物","ex":"in return 固定搭配","cat":"翻译词块"},{"en":"enhance mutual harmony","zh":"增进融洽关系","ex":"enhance 搭配 harmony","cat":"翻译词块"},{"en":"There is an old saying that …","zh":"有句老话说……","ex":"There is an old saying in China that “a teacher for a day, a father for life.”","cat":"翻译母句"},{"en":"not only … but also … / more importantly, …","zh":"不仅……更……","ex":"Teachers not only impart knowledge but also teach students how to be a good person.","cat":"翻译母句"},{"en":"which shows that …","zh":"足见……","ex":"…hold a grand ceremony, which shows how high the status of teachers was.","cat":"翻译母句"},{"en":"To carry forward …, China has designated … as …","zh":"为弘扬……，中国将……定为……","ex":"To carry forward the fine tradition of respecting teachers, China has designated September 10 as Teachers' Day.","cat":"翻译母句"},{"en":"since …","zh":"从……开始","ex":"…since 1985.","cat":"翻译母句"},{"en":"constitute / be an important part of …","zh":"是……的重要组成部分","ex":"Dining etiquette is an important part of traditional Chinese culture.","cat":"翻译母句"},{"en":"embody / contain …","zh":"蕴含着……","ex":"…embodying the warm and courteous way of hosting guests.","cat":"翻译母句"},{"en":"prepare … according to …","zh":"根据……准备……","ex":"The host prepares rich dishes according to the guests' tastes.","cat":"翻译母句"},{"en":"great attention is paid to … / be particular about …","zh":"非常讲究","ex":"Great attention is paid to the seating arrangement.","cat":"翻译母句"},{"en":"has lasted for thousands of years","zh":"已延续数千年","ex":"This unique dining etiquette has lasted for thousands of years.","cat":"翻译母句"},{"en":"play an important role in …","zh":"对……起到重要作用","ex":"…has played an important role in promoting harmonious communication.","cat":"翻译母句"},{"en":"is not merely … but …","zh":"不仅是……更是……","ex":"A gift is not merely a material present but an expression of emotion.","cat":"翻译母句"},{"en":"so as to enhance …","zh":"以增进……","ex":"…give a gift in return so as to enhance mutual harmony.","cat":"翻译母句"},{"en":"in terms of / in view of","zh":"in terms of 表“就……而言”，用于评价维度；in view of 表“鉴于，考虑到”，后接原因。","ex":"","cat":"易混辨析"},{"en":"in the long run / in the long term","zh":"二者近义，都表“从长远看”；in the long run 更强调最终结果，in the long term 更强调较长时期。","ex":"","cat":"易混辨析"},{"en":"in front of / in the front of","zh":"in front of 指“在……（外部）前面”；in the front of 指“在……（内部）前部”。","ex":"","cat":"易混辨析"},{"en":"at the end of / in the end","zh":"at the end of + 名词，表“在……末尾”；in the end 单独使用，表“最终”。","ex":"","cat":"易混辨析"},{"en":"by chance / by accident","zh":"by chance 强调偶然性；by accident 强调非故意（常含“不小心”）。","ex":"","cat":"易混辨析"},{"en":"on purpose / by design","zh":"on purpose 口语化，表“故意地”；by design 更书面，常与 by accident 对举。","ex":"","cat":"易混辨析"},{"en":"affect / effect","zh":"affect 动词“影响”；effect 名词“影响、效果”","ex":"Exercise affects the brain. / It has a positive effect.","cat":"易混辨析"},{"en":"raise / rise","zh":"raise 及物“举起、提高”；rise 不及物“上升”","ex":"Raise your hand. / Prices rise.","cat":"易混辨析"},{"en":"borrow / lend","zh":"borrow 借入；lend 借出","ex":"I borrowed a book from him. / He lent me a book.","cat":"易混辨析"},{"en":"bring / take","zh":"bring 带来（朝说话人）；take 带走（离开说话人）","ex":"Bring it here. / Take it away.","cat":"易混辨析"},{"en":"spend / cost / take","zh":"人 + spend；物 + cost；It + takes + 时间","ex":"I spent 2 hours. / It cost me 10 yuan. / It took me 2 hours.","cat":"易混辨析"},{"en":"result from / result in","zh":"result from 由……造成；result in 导致","ex":"Dementia may result from an infection. / It results in memory loss.","cat":"易混辨析"},{"en":"be made of / from","zh":"of 看得出原料；from 看不出（发生了化学变化）","ex":"a table made of wood. / paper made from wood.","cat":"易混辨析"},{"en":"the number of / a number of","zh":"前者“……的数量”（谓语单数）；后者“许多”（谓语复数）","ex":"The number of students is rising. / A number of students are here.","cat":"易混辨析"},{"en":"because / because of","zh":"because 接句子；because of 接名词或动名词","ex":"Because it rained… / because of the rain.","cat":"易混辨析"},{"en":"although / despite","zh":"although 接句子；despite 接名词","ex":"Although it rained… / despite the rain.","cat":"易混辨析"},{"en":"whether / if","zh":"介词后、主语从句、与 or not 连用只能用 whether","ex":"…looked at whether reducing junk food can…","cat":"易混辨析"},{"en":"used to do / be used to doing","zh":"过去常常做；习惯于做","ex":"He used to smoke. / He is used to smoking.","cat":"易混辨析"},{"en":"stop doing / stop to do","zh":"停止正在做的事；停下来去做另一件事","ex":"They stopped talking. / They stopped to talk.","cat":"易混辨析"},{"en":"remember doing / remember to do","zh":"记得做过；记得去做","ex":"I remember locking the door. / Remember to lock the door.","cat":"易混辨析"},{"en":"in terms of / in view of","zh":"就……而言（评价维度）；鉴于（原因）","ex":"In terms of cost, it is expensive. / In view of the rain, we stayed in.","cat":"易混辨析"}];
+
+var LS = 'cet4_col_v1';
+var IVL = [1, 3, 7, 15, 30];      /* 天 */
+var DAY = 86400000;
+var MAX_REPUSH = 2;
+var FONTS = [0.85, 1, 1.15, 1.3, 1.45, 1.6];
+
+var CATS = [
+  {k:'全部', g:null},
+  {k:'搭配', g:['动词+介词','动宾搭配','形容词+介词','名词+介词']},
+  {k:'介词短语', g:['介词短语']},
+  {k:'非谓语', g:['非谓语']},
+  {k:'从句句式', g:['从句句式']},
+  {k:'写作模板', g:['写作模板']},
+  {k:'翻译', g:['翻译词块','翻译母句']},
+  {k:'易混辨析', g:['易混辨析']}
+];
+
+var MODES = {
+  en2zh:{name:'看英文猜意思'},
+  zh2en:{name:'看中文想英文'},
+  cloze:{name:'例句填空'},
+  listen:{name:'听音辨词'}
+};
+
+/* ---------- 存储 ---------- */
+var st = loadState();
+var round = null;
+var TTS = ('speechSynthesis' in window);
+
+function loadState(){
+  var def = {items:{}, newPerRound:10, mode:'en2zh', cat:'全部', font:1,
+             night:false, hist:{}, ans:0, bkAns:0, storageOk:true,
+             stars:{}, starOnly:false, hideEx:true};
+  var o = null;
+  try{ var raw = localStorage.getItem(LS); if(raw) o = JSON.parse(raw); }catch(e){ def.storageOk = false; }
+  if(o && typeof o === 'object'){ for(var k in o){ def[k] = o[k]; } }
+  if(!def.items || typeof def.items !== 'object') def.items = {};
+  if(!def.hist || typeof def.hist !== 'object') def.hist = {};
+  if(!def.stars || typeof def.stars !== 'object') def.stars = {};
+  if(typeof def.font !== 'number' || def.font < 0 || def.font >= FONTS.length) def.font = 1;
+  return def;
+}
+
+function saveState(){
+  try{ localStorage.setItem(LS, JSON.stringify(st)); st.storageOk = true; }
+  catch(e){ st.storageOk = false; }
+  if(!st.storageOk) note('这台手机的浏览器不让存进度，关掉页面就丢了。');
+}
+
+/* ---------- 小工具 ---------- */
+function $(id){ return document.getElementById(id); }
+function pad2(n){ return (n < 10 ? '0' : '') + n; }
+function dayKey(d){
+  d = d || new Date();
+  return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+}
+function nowMs(){ return Date.now(); }
+function esc(s){ return String(s == null ? '' : s); }
+function note(t){
+  var m = $('msg');
+  m.textContent = t;
+  m.classList.remove('hide');
+}
+function show(v){
+  var vs = ['vHome','vStudy','vSpeed','vDone','vWrong'];
+  for(var i = 0; i < vs.length; i++){ $(vs[i]).classList.toggle('on', vs[i] === v); }
+  window.scrollTo(0, 0);
+}
+
+/* ---------- 主题 / 字号 ---------- */
+function applyLook(){
+  document.documentElement.style.setProperty('--fs', String(FONTS[st.font] || 1));
+  document.body.classList.toggle('night', !!st.night);
+  var mb = document.querySelector('meta[name=theme-color]');
+  if(mb) mb.setAttribute('content', st.night ? '#101012' : '#ffffff');
+}
+
+/* ---------- 发音：优先本机朗读，退到有道发音 ---------- */
+var curAudio = null;
+function speak(text){
+  var t = String(text || '').replace(/[（）()【】\[\]]/g, ' ').trim();
+  if(!t) return;
+  if(TTS){
+    try{
+      window.speechSynthesis.cancel();
+      var u = new SpeechSynthesisUtterance(t);
+      u.lang = 'en-US'; u.rate = 0.9;
+      window.speechSynthesis.speak(u);
+      return;
+    }catch(e){}
+  }
+  try{
+    if(curAudio){ curAudio.pause(); }
+    curAudio = new Audio('https://dict.youdao.com/dictvoice?type=1&audio=' + encodeURIComponent(t));
+    curAudio.play()['catch'](function(){ note('这台设备放不出声音，可以先用「看英文猜意思」背。'); });
+  }catch(e){ note('这台设备放不出声音，可以先用「看英文猜意思」背。'); }
+}
+
+/* ---------- 卡片池 ---------- */
+function catsOf(key){
+  for(var i = 0; i < CATS.length; i++){
+    if(CATS[i].k === key) return CATS[i].g;
+  }
+  return null;
+}
+function pool(){
+  var g = catsOf(st.cat);
+  var base = DATA;
+  if(st.starOnly){
+    base = DATA.filter(function(c){ return st.stars[c.en]; });
+    return base;
+  }
+  if(!g) return base.slice();
+  return base.filter(function(c){ return g.indexOf(c.cat) >= 0; });
+}
+function starCount(){
+  var n = 0;
+  for(var k in st.stars){ if(st.stars[k]) n++; }
+  return n;
+}
+function itemOf(c){
+  if(!st.items[c.en]) st.items[c.en] = {lv:0, due:0, w:0, ans:0, at:0};
+  return st.items[c.en];
+}
+function dueCount(){
+  var p = pool(), n = 0, t = nowMs();
+  for(var i = 0; i < p.length; i++){
+    var it = st.items[p[i].en];
+    if(it && it.due && it.due <= t) n++;
+  }
+  return n;
+}
+function learnedCount(){
+  var p = pool(), n = 0;
+  for(var i = 0; i < p.length; i++){ if(st.items[p[i].en]) n++; }
+  return n;
+}
+function wrongList(){
+  var g = catsOf(st.cat);
+  var arr = DATA.filter(function(c){
+    var it = st.items[c.en];
+    return it && it.w > 0 && (!g || g.indexOf(c.cat) >= 0);
+  });
+  arr.sort(function(a, b){ return (st.items[b.en].w - st.items[a.en].w) || (st.items[a.en].due - st.items[b.en].due); });
+  return arr;
+}
+
+/* ---------- 一轮 ---------- */
+function startRound(kind){
+  var t = nowMs(), q = [];
+  if(kind === 'wrong'){
+    var w = wrongList();
+    for(var i = 0; i < w.length && i < 40; i++) q.push(w[i]);
+    if(!q.length){ note('这一类还没有错题。'); return; }
+  }else{
+    var p = pool(), due = [], fresh = [];
+    for(var j = 0; j < p.length; j++){
+      var it = st.items[p[j].en];
+      if(it && it.due && it.due <= t) due.push(p[j]);
+      else if(!it) fresh.push(p[j]);
+    }
+    due.sort(function(a, b){ return st.items[a.en].due - st.items[b.en].due; });
+    q = due.slice(0, 80);
+    for(var k = 0; k < fresh.length && k < st.newPerRound; k++) q.push(fresh[k]);
+    if(!q.length){ note('这一类的卡都复习完了，换一类、或把新词数调大一点。'); return; }
+  }
+  round = {q:q, i:0, ok:0, bad:0, fix:0, fuzzy:0, push:{}, kind:kind,
+           mode:st.mode, cat:st.cat, revealed:false, how:null, fallback:false};
+  undoBuf = null;
+  lastMode = 'normal';
+  $('againBtn').textContent = '再来一轮';
+  $('modeTag').textContent = MODES[round.mode].name + ' · ' + round.cat;
+  show('vStudy');
+  renderCard();
+}
+
+function blankEx(c){
+  var ex = c.ex || '';
+  if(!ex || ex.indexOf('______') >= 0) return null;
+  var toks = String(c.en || '').toLowerCase().match(/[a-z']+/g) || [];
+  while(toks.length && /^(be|being|to|the|a|an|of)$/.test(toks[0])) toks.shift();
+  if(!toks.length) return null;
+  var low = ex.toLowerCase();
+  for(var n = Math.min(4, toks.length); n >= 1; n--){
+    for(var i = 0; i + n <= toks.length; i++){
+      var cand = toks.slice(i, i + n).join(' ');
+      if(cand.length < 3) continue;
+      var forms = variants(cand, i + n === toks.length);
+      for(var v = 0; v < forms.length; v++){
+        var idx = low.indexOf(forms[v]);
+        if(idx >= 0) return ex.slice(0, idx) + '______' + ex.slice(idx + forms[v].length);
+      }
+    }
+  }
+  return null;
+}
+
+/* 英文会变形：engaging / engaged / engages，都要能挖出来 */
+function variants(cand, atEnd){
+  var out = [cand], parts = cand.split(' ');
+  var last = parts[parts.length - 1], head = parts.slice(0, -1).join(' ');
+  var pre = head ? head + ' ' : '';
+  if(!atEnd) out.push(cand);           /* 词中间出现：只认原型 */
+  out.push(pre + last + 's');
+  out.push(pre + last + 'ed');
+  if(/e$/.test(last)){ out.push(pre + last.slice(0, -1) + 'ing'); }
+  else { out.push(pre + last + 'ing'); }
+  if(/y$/.test(last)){ out.push(pre + last.slice(0, -1) + 'ies'); }
+  if(/e$/.test(last)){ out.push(pre + last + 'd'); }
+  return out;
+}
+
+function renderCard(){
+  var c = round.q[round.i];
+  round.revealed = false; round.how = null; round.fallback = false;
+  $('back').classList.add('hide');
+  $('askBtns').classList.remove('hide');
+  $('judgeBtns').classList.add('hide');
+  $('ex').classList.add('hide');
+  $('ex').textContent = '';
+  $('exBtnWrap').classList.add('hide');
+  $('sub').textContent = '';
+  $('starBtn').textContent = st.stars[c.en] ? '★ 已收藏' : '☆ 收藏';
+  $('starBtn').className = 'mini' + (st.stars[c.en] ? ' starOn' : '');
+  resetSwipe();
+
+  var f = '';
+  var m = round.mode;
+  if(m === 'en2zh') f = c.en;
+  else if(m === 'zh2en') f = c.zh;
+  else if(m === 'cloze'){
+    var b = blankEx(c);
+    if(b){ f = b; } else { f = c.zh; round.fallback = true; }
+  }else{ f = '🔊　点一下听发音'; }
+
+  $('front').textContent = f;
+  updateTop();
+  if(m === 'listen') speak(c.en);
+}
+
+function updateTop(){
+  var total = round.q.length;
+  var n = total - round.i;
+  $('left').textContent = '剩 ' + n + ' 张';
+  $('bar').style.width = (total ? (round.i / total * 100) : 0) + '%';
+}
+
+function reveal(how){
+  if(round.revealed) return;
+  var c = round.q[round.i];
+  round.how = how; round.revealed = true;
+
+  var m = round.mode;
+  var main, sub;
+  if(m === 'en2zh'){ main = c.zh; sub = ''; }
+  else { main = c.en; sub = c.zh; }
+
+  $('ans').textContent = main;
+  if(sub && sub !== main){ $('sub').textContent = sub; } else { $('sub').textContent = ''; }
+  if(c.ex){
+    if(st.hideEx && m !== 'cloze'){
+      $('ex').classList.add('hide');
+      $('exBtnWrap').classList.remove('hide');
+      $('exBtn').textContent = '看例句';
+    }else{
+      $('ex').textContent = c.ex; $('ex').classList.remove('hide');
+    }
+  }
+  $('back').classList.remove('hide');
+  $('askBtns').classList.add('hide');
+  $('judgeBtns').classList.remove('hide');
+  if(m !== 'listen') speak(c.en);
+}
+
+/* 先藏例句时，点一下再把例句展开 */
+function toggleEx(){
+  var c = round && round.q[round.i];
+  if(!c || !c.ex) return;
+  if($('ex').classList.contains('hide')){
+    $('ex').textContent = c.ex; $('ex').classList.remove('hide');
+    $('exBtn').textContent = '收起例句';
+  }else{
+    $('ex').classList.add('hide');
+    $('exBtn').textContent = '看例句';
+  }
+}
+
+function grade(c, kind, cap){
+  var it = itemOf(c);
+  var t = nowMs();
+  it.ans = (it.ans || 0) + 1;
+  it.at = t;
+  st.ans = (st.ans || 0) + 1;
+  var k = dayKey();
+  st.hist[k] = (st.hist[k] || 0) + 1;
+  if(kind === true){
+    it.lv = Math.min((it.lv || 0) + 1, cap || 5);
+    it.due = t + IVL[Math.min(it.lv - 1, 4)] * DAY;
+  }else if(kind === 'fuzzy'){
+    /* 模糊：不算会、也不算错，明天再来一次 */
+    it.lv = Math.max(1, it.lv || 0);
+    it.due = t + DAY;
+  }else{
+    it.lv = 0;
+    it.w = (it.w || 0) + 1;
+    it.due = t;
+  }
+  saveState();
+}
+
+/* 撤销用：记下判分之前的样子 */
+var undoBuf = null;
+function snapshot(c){
+  undoBuf = {
+    idx: round.i, en: c.en, item: JSON.parse(JSON.stringify(itemOf(c))),
+    ans: st.ans || 0, hist: (st.hist[dayKey()] || 0),
+    i: round.i, ok: round.ok, bad: round.bad, fix: round.fix, fuzzy: round.fuzzy,
+    qlen: round.q.length, push: JSON.parse(JSON.stringify(round.push || {}))
+  };
+}
+
+function undoLast(){
+  if(!undoBuf || !round){ note('没有可以撤销的了。'); return; }
+  st.items[undoBuf.en] = undoBuf.item;
+  st.ans = undoBuf.ans;
+  var k = dayKey();
+  if(undoBuf.hist > 0) st.hist[k] = undoBuf.hist; else delete st.hist[k];
+  round.i = undoBuf.i; round.ok = undoBuf.ok; round.bad = undoBuf.bad;
+  round.fix = undoBuf.fix; round.fuzzy = undoBuf.fuzzy;
+  round.q.length = undoBuf.qlen;
+  round.push = undoBuf.push;
+  undoBuf = null;
+  show('vStudy');
+  $('modeTag').textContent = MODES[round.mode].name + ' · ' + round.cat;
+  renderCard();
+  saveState();
+  note('上一步已经撤销，重新判这张。');
+}
+
+function judge(kind){
+  if(!round || !round.revealed) return;
+  var c = round.q[round.i];
+  snapshot(c);
+  if(kind === true){
+    round.ok++;
+  }else if(kind === 'fuzzy'){
+    round.fuzzy++;
+  }else{
+    round.bad++;
+    if(round.how === 'known') round.fix++;
+    var key = c.en;
+    var pushed = round.push[key] || 0;
+    if(pushed < MAX_REPUSH){
+      round.push[key] = pushed + 1;
+      round.q.push(c);
+    }
+  }
+  grade(c, kind);
+  round.i++;
+  if(round.i >= round.q.length){ finish(); }
+  else{ renderCard(); }
+}
+
+function finish(){
+  var total = round.ok + round.bad;
+  $('doneT').textContent = round.kind === 'wrong' ? '错题刷完了' : '这一轮完了';
+  var rows = [
+    ['答对', round.ok + ' 张'],
+    ['有点模糊', round.fuzzy + ' 张'],
+    ['没记对', round.bad + ' 张'],
+    ['自以为会、其实记错', round.fix + ' 张'],
+    ['今天累计', (st.hist[dayKey()] || 0) + ' 张'],
+    ['连续打卡', streakDays() + ' 天']
+  ];
+  var html = '';
+  for(var i = 0; i < rows.length; i++){
+    html += '<div><span>' + rows[i][0] + '</span><span>' + rows[i][1] + '</span></div>';
+  }
+  $('doneList').innerHTML = html;
+  show('vDone');
+  refreshHome();
+}
+
+/* ---------- 打卡 ---------- */
+function streakDays(){
+  var n = 0, d = new Date();
+  if(!(st.hist[dayKey(d)] > 0)) d = new Date(d.getTime() - DAY);
+  while(st.hist[dayKey(d)] > 0){
+    n++;
+    d = new Date(d.getTime() - DAY);
+  }
+  return n;
+}
+
+function drawCal(){
+  var box = $('cal');
+  box.innerHTML = '';
+  var end = new Date();
+  var startMs = end.getTime() - 55 * DAY;
+  for(var i = 0; i < 56; i++){
+    var d = new Date(startMs + i * DAY);
+    var key = dayKey(d);
+    var n = st.hist[key] || 0;
+    var lv = n === 0 ? 0 : n < 5 ? 1 : n < 15 ? 2 : n < 30 ? 3 : 4;
+    var el = document.createElement('i');
+    if(lv) el.className = 'l' + lv;
+    el.title = key + '：' + n + ' 张';
+    box.appendChild(el);
+  }
+}
+
+/* ---------- 首页 ---------- */
+function refreshHome(){
+  $('sLearned').textContent = learnedCount();
+  $('sDue').textContent = dueCount();
+  $('sToday').textContent = st.hist[dayKey()] || 0;
+  $('streak').textContent = '🔥 ' + streakDays() + ' 天';
+  $('wCount').textContent = wrongList().length;
+  $('sCount').textContent = starCount();
+  $('starOnlyBtn').className = 'ghost' + (st.starOnly ? ' on' : '');
+  $('exToggle').textContent = st.hideEx ? '例句：先藏起来' : '例句：直接显示';
+  drawCd();
+  var pend = (st.ans || 0) - (st.bkAns || 0);
+  var w = $('bkWarn');
+  if(pend >= 20){
+    w.innerHTML = '已经答了 ' + pend + ' 张还没备份。点「备份进度」，把那串码发到微信「文件传输助手」存着，换手机也不怕。';
+    w.classList.remove('hide');
+  }else{
+    w.classList.add('hide');
+  }
+  drawCal();
+}
+
+function buildChips(){
+  var box = $('catChips');
+  box.innerHTML = '';
+  for(var i = 0; i < CATS.length; i++){
+    var b = document.createElement('button');
+    b.textContent = CATS[i].k;
+    if(CATS[i].k === st.cat) b.className = 'on';
+    b.setAttribute('data-cat', CATS[i].k);
+    b.onclick = (function(k){ return function(){
+      st.cat = k; saveState(); buildChips(); refreshHome();
+    }; })(CATS[i].k);
+    box.appendChild(b);
+  }
+  var mc = $('modeChips').children;
+  for(var j = 0; j < mc.length; j++){
+    mc[j].classList.toggle('on', mc[j].getAttribute('data-mode') === st.mode);
+  }
+  var nc = $('numChips').children;
+  for(var k = 0; k < nc.length; k++){
+    nc[k].classList.toggle('on', Number(nc[k].getAttribute('data-n')) === st.newPerRound);
+  }
+}
+
+/* ---------- 备份 ---------- */
+function backupCode(){
+  var payload = {items:st.items, hist:st.hist, ans:st.ans, newPerRound:st.newPerRound};
+  var s = JSON.stringify(payload);
+  var b = btoa(unescape(encodeURIComponent(s)));
+  return 'CET4BK1.' + b;
+}
+
+function doBackup(){
+  var code = backupCode();
+  var done = function(){
+    st.bkAns = st.ans || 0; saveState(); refreshHome();
+    $('restoreBox').classList.remove('hide');
+    $('impText').value = code;
+    $('impText').select();
+    note('备份码已生成：长按上面的框复制，发给微信「文件传输助手」。');
+  };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(code).then(function(){
+      st.bkAns = st.ans || 0; saveState(); refreshHome();
+      $('restoreBox').classList.remove('hide');
+      $('impText').value = code;
+      note('备份码已复制到剪贴板，发给微信「文件传输助手」存着。');
+    })['catch'](done);
+  }else{
+    done();
+  }
+}
+
+function doImport(text){
+  if(!text) return;
+  var t = String(text).trim();
+  if(t.indexOf('CET4BK2.') === 0){
+    var obj2 = null;
+    try{ obj2 = JSON.parse(decodeURIComponent(escape(atob(t.slice(8))))); }catch(e){ obj2 = null; }
+    if(!obj2 || !obj2.d){ note('这串码好像不对，重新复制一次试试。'); return; }
+    restoreV2(obj2);
+    return;
+  }
+  if(t.indexOf('CET4BK1.') === 0) t = t.slice(8);
+  var obj = null;
+  try{ obj = JSON.parse(decodeURIComponent(escape(atob(t)))); }catch(e){ obj = null; }
+  if(!obj || !obj.items || typeof obj.items !== 'object'){ note('这串码好像不对，重新复制一次试试。'); return; }
+  var old = st.items || {};
+  for(var k in obj.items){ old[k] = obj.items[k]; }
+  st.items = old;
+  if(obj.hist && typeof obj.hist === 'object'){
+    for(var d in obj.hist){ st.hist[d] = Math.max(st.hist[d] || 0, obj.hist[d]); }
+  }
+  st.ans = Math.max(st.ans || 0, obj.ans || 0);
+  saveState(); refreshHome();
+  note('进度恢复了，共 ' + Object.keys(st.items).length + ' 条有记录。');
+}
+
+/* ---------- 错题本页 ---------- */
+function openWrong(){
+  var w = wrongList();
+  var box = $('wList');
+  box.innerHTML = '';
+  if(!w.length){
+    box.innerHTML = '<div class="hint">还没有错题，说明你还没答错过——或者还没开始。</div>';
+  }
+  for(var i = 0; i < w.length && i < 100; i++){
+    var c = w[i], it = st.items[c.en];
+    var d = document.createElement('div');
+    d.className = 'wItem';
+    d.innerHTML = '<span class="n">错 ' + it.w + ' 次</span><div class="a"></div><div class="b"></div>';
+    d.querySelector('.a').textContent = c.en;
+    d.querySelector('.b').textContent = c.zh;
+    box.appendChild(d);
+  }
+  show('vWrong');
+}
+
+/* ---------- 左右滑卡：右滑=会，左滑=不会 ---------- */
+var sw = {on:false, x0:0, y0:0, dx:0, dy:0, moved:false, blockClick:false};
+function inSpeed(){ return $('vSpeed').classList.contains('on'); }
+function cardEls(){
+  return inSpeed() ? [$('spFront'), $('spZh')] : [$('front'), $('back')];
+}
+function setSwipe(dx){
+  var rot = Math.max(-6, Math.min(6, dx / 26));
+  var els = cardEls();
+  for(var i = 0; i < els.length; i++){
+    els[i].style.transform = dx ? 'translateX(' + dx + 'px) rotate(' + rot + 'deg)' : '';
+    els[i].style.opacity = dx ? String(Math.max(0.5, 1 - Math.abs(dx) / 420)) : '';
+  }
+  var wrap = inSpeed() ? $('spWrap') : $('cardWrap');
+  var l = wrap.querySelector('.swipeTag.l'), r = wrap.querySelector('.swipeTag.r');
+  if(l) l.style.opacity = dx < -20 ? Math.min(1, -dx / 90) : 0;
+  if(r) r.style.opacity = dx > 20 ? Math.min(1, dx / 90) : 0;
+}
+function resetSwipe(){ sw.on = false; sw.dx = 0; setSwipe(0); }
+function swipeStart(e){
+  if(inSpeed()){ if(!sp) return; }else if(!round) return;
+  var t = e.touches ? e.touches[0] : e;
+  sw.on = true; sw.moved = false; sw.dx = 0; sw.x0 = t.clientX; sw.y0 = t.clientY;
+}
+function swipeMove(e){
+  if(!sw.on) return;
+  var t = e.touches ? e.touches[0] : e;
+  sw.dx = t.clientX - sw.x0;
+  sw.dy = t.clientY - sw.y0;
+  if(Math.abs(sw.dx) > 8) sw.moved = true;
+  if(Math.abs(sw.dx) > Math.abs(sw.dy) && e.cancelable) e.preventDefault();
+  setSwipe(sw.dx);
+}
+function swipeEnd(){
+  if(!sw.on) return;
+  var dx = sw.dx, moved = sw.moved;
+  sw.on = false;
+  setSwipe(0);
+  if(moved){ sw.blockClick = true; setTimeout(function(){ sw.blockClick = false; }, 350); }
+  if(!moved || Math.abs(dx) < 60) return;
+  var right = dx > 0;
+  if(inSpeed()){ spJudge(right); return; }
+  if(!round.revealed) reveal(right ? 'known' : 'unknown');
+  else judge(right ? true : false);
+}
+
+/* ---------- 搜词 ---------- */
+function renderSearch(){
+  var q = ($('q').value || '').trim().toLowerCase();
+  var box = $('searchRes');
+  box.innerHTML = '';
+  if(q.length < 1) return;
+  var hits = DATA.filter(function(c){
+    return String(c.en || '').toLowerCase().indexOf(q) >= 0 || String(c.zh || '').indexOf(q) >= 0;
+  }).slice(0, 20);
+  if(!hits.length){ box.innerHTML = '<div class="hint">没找到，换个词试试。</div>'; return; }
+  for(var i = 0; i < hits.length; i++){
+    (function(c){
+      var d = document.createElement('div');
+      d.className = 'sItem';
+      var l = document.createElement('div'); l.className = 'l'; l.textContent = c.en;
+      var r = document.createElement('div'); r.className = 'r'; r.textContent = c.zh;
+      d.appendChild(l); d.appendChild(r);
+      d.onclick = function(){ startSingle(c); };
+      box.appendChild(d);
+    })(hits[i]);
+  }
+}
+function startSingle(c){
+  round = {q:[c], i:0, ok:0, bad:0, fix:0, fuzzy:0, push:{}, kind:'single',
+           mode:st.mode, cat:'单张', revealed:false, how:null, fallback:false};
+  undoBuf = null;
+  lastMode = 'normal';
+  $('againBtn').textContent = '再来一轮';
+  $('modeTag').textContent = MODES[round.mode].name + ' · 单张';
+  show('vStudy');
+  renderCard();
+}
+
+/* ---------- 极速刷词：认识划走，不认识留到下一轮 ---------- */
+var sp = null;
+var lastMode = 'normal';
+function shuffle(a){
+  for(var i = a.length - 1; i > 0; i--){
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a;
+}
+function startSpeed(){
+  var p = shuffle(pool().slice());
+  if(!p.length){ note('这一类还没有卡。'); return; }
+  lastMode = 'speed';
+  sp = {q:p, i:0, round:1, misses:[], done:0, bad:0, ans:0, t0:nowMs()};
+  show('vSpeed');
+  spRender();
+}
+function spRender(){
+  if(!sp) return;
+  var c = sp.q[sp.i];
+  $('spFront').textContent = c.en;
+  $('spZh').textContent = c.zh;
+  $('spLeft').textContent = '剩 ' + (sp.q.length - sp.i);
+  $('spBar').style.width = Math.round((sp.i / sp.q.length) * 100) + '%';
+  $('spTag').textContent = '⚡ 极速刷词 · 第 ' + sp.round + ' 轮 · 共 ' + sp.q.length +
+    ' 张' + (st.starOnly ? ' · 只看收藏' : '');
+  setSwipe(0);
+}
+function spJudge(known){
+  if(!sp) return;
+  var c = sp.q[sp.i];
+  sp.ans++;
+  if(known){ grade(c, true, 3); sp.done++; }
+  else{ grade(c, false); sp.bad++; sp.misses.push(c); }
+  sp.i++;
+  if(sp.i < sp.q.length){ spRender(); return; }
+  if(sp.misses.length && sp.round < 10){
+    var m = sp.misses;
+    sp.misses = []; sp.i = 0; sp.round++;
+    sp.q = shuffle(m);
+    spRender();
+    note('第 ' + sp.round + ' 轮：只剩刚才没认出来的 ' + m.length + ' 张。');
+    return;
+  }
+  spFinish();
+}
+function spFinish(){
+  var sec = Math.max(1, Math.round((nowMs() - sp.t0) / 1000));
+  var mm = Math.floor(sec / 60), ss = sec % 60;
+  var rows = [
+    ['刷了几轮', sp.round + ' 轮'],
+    ['一共划过', sp.ans + ' 张'],
+    ['认出来', sp.done + ' 张'],
+    ['还留着', sp.misses.length + ' 张'],
+    ['耗时', mm + ' 分 ' + ss + ' 秒'],
+    ['平均每张', (sec / Math.max(1, sp.ans)).toFixed(1) + ' 秒'],
+    ['今天累计', (st.hist[dayKey()] || 0) + ' 张'],
+    ['连续打卡', streakDays() + ' 天']
+  ];
+  var html = '';
+  for(var i = 0; i < rows.length; i++){
+    html += '<div><span>' + rows[i][0] + '</span><span>' + rows[i][1] + '</span></div>';
+  }
+  var left = sp.misses.length;
+  sp = null; round = null; lastMode = 'speed';
+  $('doneT').textContent = left ? '极速刷词结束' : '全认识了 🎉';
+  $('doneList').innerHTML = html;
+  $('againBtn').textContent = '再刷一遍';
+  show('vDone');
+  refreshHome();
+}
+
+/* ---------- 考试倒计时 ---------- */
+var EXAM_DAY = '2026-12-12';
+function drawCd(){
+  var el = $('cd');
+  var today = new Date(); today.setHours(0, 0, 0, 0);
+  var ex = new Date(EXAM_DAY + 'T00:00:00');
+  var d = Math.round((ex.getTime() - today.getTime()) / DAY);
+  if(isNaN(d)){ el.textContent = ''; return; }
+  var need = Math.ceil((DATA.length - learnedCount()) / 20);
+  if(d > 0){
+    el.innerHTML = '距 12 月 12 日四级考试还有 <b>' + d + '</b> 天' +
+      (need > 0 ? '　·　每天 20 张新卡，' + need + ' 天能背完' : '　·　新卡都背过一遍了');
+  }else if(d === 0){
+    el.innerHTML = '<b>今天就是考试日</b>，别背新卡了，翻翻错题本。';
+  }else{
+    el.innerHTML = '考试已经过去 <b>' + (-d) + '</b> 天';
+  }
+}
+
+/* ---------- 备份（v2 短码，也能读旧码） ---------- */
+function idxOf(en){
+  for(var i = 0; i < DATA.length; i++){ if(DATA[i].en === en) return i; }
+  return -1;
+}
+function backupCode(){
+  var t = nowMs(), arr = [];
+  for(var en in st.items){
+    var i = idxOf(en);
+    if(i < 0) continue;
+    var it = st.items[en] || {};
+    arr.push([i, it.lv || 0, it.w || 0, Math.round(((it.due || t) - t) / DAY), it.ans || 0]);
+  }
+  var stars = [];
+  for(var k in st.stars){ if(st.stars[k]){ var j = idxOf(k); if(j >= 0) stars.push(j); } }
+  var payload = {v:2, d:arr, h:st.hist, a:st.ans || 0, n:st.newPerRound || 10, s:stars};
+  return 'CET4BK2.' + btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+}
+function restoreV2(obj){
+  var t = nowMs(), n = 0;
+  for(var i = 0; i < (obj.d || []).length; i++){
+    var r = obj.d[i];
+    var c = DATA[r[0]];
+    if(!c) continue;
+    st.items[c.en] = {lv:r[1] || 0, w:r[2] || 0, due:t + (r[3] || 0) * DAY, ans:r[4] || 0, at:t};
+    n++;
+  }
+  st.stars = {};
+  for(var j = 0; j < (obj.s || []).length; j++){
+    var sc = DATA[obj.s[j]];
+    if(sc) st.stars[sc.en] = 1;
+  }
+  if(obj.h && typeof obj.h === 'object'){
+    for(var d in obj.h){ st.hist[d] = Math.max(st.hist[d] || 0, obj.h[d]); }
+  }
+  st.ans = Math.max(st.ans || 0, obj.a || 0);
+  if(obj.n) st.newPerRound = obj.n;
+  saveState(); refreshHome();
+  note('进度恢复了，共 ' + n + ' 条记录、' + starCount() + ' 张收藏。');
+}
+
+/* ---------- 绑定 ---------- */
+function goHome(){ show('vHome'); refreshHome(); buildChips(); }
+
+$('startBtn').onclick = function(){ startRound('normal'); };
+$('goWrong').onclick = openWrong;
+$('wBack').onclick = goHome;
+$('wStart').onclick = function(){ startRound('wrong'); };
+$('quitBtn').onclick = function(){ goHome(); };
+$('againBtn').onclick = function(){
+  if(lastMode === 'speed'){ startSpeed(); return; }
+  startRound(round ? round.kind : 'normal');
+};
+$('homeBtn').onclick = goHome;
+$('speedBtn').onclick = startSpeed;
+$('spYes').onclick = function(){ spJudge(true); };
+$('spNo').onclick = function(){ spJudge(false); };
+$('spBack').onclick = function(){ sp = null; goHome(); };
+
+$('knownBtn').onclick = function(){ reveal('known'); };
+$('unknownBtn').onclick = function(){ reveal('unknown'); };
+$('rightBtn').onclick = function(){ judge(true); };
+$('fuzzyBtn').onclick = function(){ judge('fuzzy'); };
+$('wrongBtn').onclick = function(){ judge(false); };
+$('undoBtn').onclick = undoLast;
+$('exBtn').onclick = toggleEx;
+$('starBtn').onclick = function(){
+  if(!round) return;
+  var c = round.q[round.i];
+  if(st.stars[c.en]){ delete st.stars[c.en]; } else { st.stars[c.en] = 1; }
+  saveState();
+  $('starBtn').textContent = st.stars[c.en] ? '★ 已收藏' : '☆ 收藏';
+  $('starBtn').className = 'mini' + (st.stars[c.en] ? ' starOn' : '');
+  refreshHome();
+};
+$('starOnlyBtn').onclick = function(){
+  st.starOnly = !st.starOnly;
+  saveState(); buildChips(); refreshHome();
+  note(st.starOnly ? '现在只背你收藏的 ' + starCount() + ' 张。' : '已切回全部卡片。');
+};
+$('exToggle').onclick = function(){
+  st.hideEx = !st.hideEx; saveState(); refreshHome();
+  note(st.hideEx ? '以后答案先只给中文，例句要点一下才出。' : '以后答案直接把例句一起显示。');
+};
+$('q').oninput = renderSearch;
+$('speakBtn').onclick = function(){ var c = round.q[round.i]; speak(c.en + '. ' + (c.ex || '')); };
+$('front').onclick = function(){
+  if(sw.blockClick) return;
+  if(round && round.mode === 'listen'){ speak(round.q[round.i].en); }
+};
+
+/* 滑卡：手机触摸 + 电脑鼠标都能用 */
+var cw = $('cardWrap');
+cw.addEventListener('touchstart', swipeStart, {passive:true});
+cw.addEventListener('touchmove', swipeMove, {passive:false});
+cw.addEventListener('touchend', swipeEnd, {passive:true});
+cw.addEventListener('mousedown', swipeStart);
+cw.addEventListener('mousemove', swipeMove);
+cw.addEventListener('mouseup', swipeEnd);
+cw.addEventListener('mouseleave', function(){ if(sw.on) swipeEnd(); });
+
+var spw = $('spWrap');
+spw.addEventListener('touchstart', swipeStart, {passive:true});
+spw.addEventListener('touchmove', swipeMove, {passive:false});
+spw.addEventListener('touchend', swipeEnd, {passive:true});
+spw.addEventListener('mousedown', swipeStart);
+spw.addEventListener('mousemove', swipeMove);
+spw.addEventListener('mouseup', swipeEnd);
+spw.addEventListener('mouseleave', function(){ if(sw.on) swipeEnd(); });
+
+$('modeChips').onclick = function(e){
+  var b = e.target.closest ? e.target.closest('button') : null;
+  if(!b) return;
+  st.mode = b.getAttribute('data-mode'); saveState(); buildChips();
+};
+$('numChips').onclick = function(e){
+  var b = e.target.closest ? e.target.closest('button') : null;
+  if(!b) return;
+  st.newPerRound = Number(b.getAttribute('data-n')); saveState(); buildChips(); refreshHome();
+};
+
+function bumpFont(dir){
+  st.font = Math.max(0, Math.min(FONTS.length - 1, (st.font || 1) + dir));
+  saveState(); applyLook();
+}
+$('fontUp').onclick = function(){ bumpFont(1); };
+$('fontDown').onclick = function(){ bumpFont(-1); };
+$('fsUp').onclick = function(){ bumpFont(1); };
+$('fsDown').onclick = function(){ bumpFont(-1); };
+$('nightBtn').onclick = function(){ st.night = !st.night; saveState(); applyLook(); };
+$('backupBtn').onclick = doBackup;
+$('importBtn').onclick = function(){ $('restoreBox').classList.toggle('hide'); };
+$('impDo').onclick = function(){ doImport($('impText').value); };
+$('impPick').onclick = function(){ $('impFile').click(); };
+$('impFile').onchange = function(e){
+  var f = e.target.files && e.target.files[0];
+  if(!f) return;
+  var r = new FileReader();
+  r.onload = function(){ doImport(String(r.result)); };
+  r.readAsText(f, 'utf-8');
+};
+
+/* ---------- 启动 ---------- */
+applyLook();
+buildChips();
+refreshHome();
+if(!st.storageOk){ note('这台设备的浏览器不让存进度，换个浏览器或装 App 版更稳。'); }
+</script>
+</body>
+</html>
