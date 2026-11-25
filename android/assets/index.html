@@ -110,7 +110,10 @@ textarea{width:100%;height:90px;font:inherit;font-size:calc(13px*var(--fs));padd
 /* ---- 倒计时 / 搜索 / 星标 ---- */
 .cd{margin:10px 0 0;font-size:calc(13px*var(--fs));color:var(--dim);text-align:center}
 .cd b{color:var(--bad);font-size:calc(17px*var(--fs))}
-.sItem{display:flex;justify-content:space-between;gap:10px;padding:10px 4px;border-bottom:1px solid var(--line);cursor:pointer}
+.spk{flex:0 0 auto;border:1px solid var(--line);background:transparent;color:var(--fg);
+  font-size:calc(15px*var(--fs));line-height:1;padding:7px 9px;border-radius:10px;cursor:pointer}
+.spk:active{opacity:.6}
+.sItem{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid var(--line);cursor:pointer}
 .sItem .l{font-size:calc(16px*var(--fs));font-weight:700}
 .sItem .r{font-size:calc(13px*var(--fs));color:var(--dim);text-align:right;flex:1}
 .sBox{width:100%;box-sizing:border-box;padding:12px;border-radius:14px;border:1px solid var(--line);
@@ -184,6 +187,9 @@ textarea{width:100%;height:90px;font:inherit;font-size:calc(13px*var(--fs));padd
         <button id="fontUp" class="mini">字大一点</button>
         <button id="nightBtn" class="mini">夜间模式</button>
         <button id="exToggle" class="mini">例句：先藏起来</button>
+        <button id="autoSpeakBtn" class="mini">自动朗读：开</button>
+        <button id="rateBtn" class="mini">语速：正常</button>
+        <button id="testSpeakBtn" class="mini">🔊 试听</button>
         <button id="backupBtn" class="mini">备份进度</button>
         <button id="importBtn" class="mini">恢复进度</button>
       </div>
@@ -215,6 +221,7 @@ textarea{width:100%;height:90px;font:inherit;font-size:calc(13px*var(--fs));padd
       <div class="swipeTag l">← 想不起来</div>
       <div class="swipeTag r">会 →</div>
       <div id="front" class="front"></div>
+      <div id="frontSpeakWrap" style="margin-top:12px"><button id="frontSpeak" class="mini">🔊 读这个词</button></div>
       <div id="back" class="back hide">
         <div id="ans" class="ans"></div>
         <div id="sub" class="ex" style="border:none;padding-left:0;text-align:center;margin-top:8px"></div>
@@ -257,6 +264,7 @@ textarea{width:100%;height:90px;font:inherit;font-size:calc(13px*var(--fs));padd
       <div class="swipeTag r">认识 →</div>
       <div id="spFront" class="front"></div>
       <div id="spZh"></div>
+      <div id="spSpeakWrap" style="margin-top:12px"><button id="spSpeak" class="mini">🔊 读这个词</button></div>
     </div>
     <div class="btns">
       <button id="spYes" class="b1">认识 ✓</button>
@@ -321,7 +329,8 @@ var TTS = ('speechSynthesis' in window);
 function loadState(){
   var def = {items:{}, newPerRound:10, mode:'en2zh', cat:'全部', font:1,
              night:false, hist:{}, ans:0, bkAns:0, storageOk:true,
-             stars:{}, starOnly:false, hideEx:true};
+             stars:{}, starOnly:false, hideEx:true,
+             autoSpeak:true, rate:1};
   var o = null;
   try{ var raw = localStorage.getItem(LS); if(raw) o = JSON.parse(raw); }catch(e){ def.storageOk = false; }
   if(o && typeof o === 'object'){ for(var k in o){ def[k] = o[k]; } }
@@ -366,25 +375,58 @@ function applyLook(){
   if(mb) mb.setAttribute('content', st.night ? '#101012' : '#ffffff');
 }
 
-/* ---------- 发音：优先本机朗读，退到有道发音 ---------- */
-var curAudio = null;
+/* ---------- 发音：手机原生朗读 > 浏览器朗读 > 在线音频 ---------- */
+var curAudio = null, speakNoteDone = false, warmed = {};
+var RATES = [0.75, 0.9, 1.1];
+var RATE_NAMES = ['慢', '正常', '快'];
+function rateVal(){ var i = (st.rate == null ? 1 : st.rate); return RATES[i] || 0.9; }
+function nativeTts(){
+  return (typeof AndroidTTS !== 'undefined' && AndroidTTS) ? AndroidTTS : null;
+}
+function cleanText(t){
+  return String(t == null ? '' : t).replace(/[（）()【】\[\]]/g, ' ').replace(/\s+/g, ' ').trim();
+}
 function speak(text){
-  var t = String(text || '').replace(/[（）()【】\[\]]/g, ' ').trim();
+  var t = cleanText(text);
   if(!t) return;
+  var rate = rateVal();
+  var nat = nativeTts();
+  if(nat){
+    try{ if(nat.setRate) nat.setRate(rate); nat.speak(t); return; }catch(e){}
+  }
   if(TTS){
     try{
       window.speechSynthesis.cancel();
       var u = new SpeechSynthesisUtterance(t);
-      u.lang = 'en-US'; u.rate = 0.9;
+      u.lang = 'en-US'; u.rate = rate;
       window.speechSynthesis.speak(u);
       return;
     }catch(e){}
   }
   try{
-    if(curAudio){ curAudio.pause(); }
+    if(curAudio){ try{ curAudio.pause(); }catch(e){} }
     curAudio = new Audio('https://dict.youdao.com/dictvoice?type=1&audio=' + encodeURIComponent(t));
-    curAudio.play()['catch'](function(){ note('这台设备放不出声音，可以先用「看英文猜意思」背。'); });
-  }catch(e){ note('这台设备放不出声音，可以先用「看英文猜意思」背。'); }
+    curAudio.play()['catch'](speakFail);
+  }catch(e){ speakFail(); }
+}
+function speakFail(){
+  if(speakNoteDone) return;
+  speakNoteDone = true;
+  note('这台设备暂时放不出声音，可以先在设置里关掉自动朗读，用眼睛背也不耽误。');
+}
+/* 没有本机朗读时，先把下两张的音频偷偷拉下来，点的时候更跟得上手 */
+function prewarm(){
+  if(nativeTts() || TTS) return;
+  var q = [], at = 0;
+  if(inSpeed()){ if(!sp) return; q = sp.q; at = sp.i; }
+  else if(round){ q = round.q; at = round.i; }
+  else return;
+  for(var k = at + 1; k <= at + 2 && k < q.length; k++){
+    var w = q[k] && q[k].en;
+    if(!w || warmed[w]) continue;
+    warmed[w] = 1;
+    try{ var a = new Audio('https://dict.youdao.com/dictvoice?type=1&audio=' + encodeURIComponent(w)); a.preload = 'auto'; }catch(e){}
+  }
 }
 
 /* ---------- 卡片池 ---------- */
@@ -525,8 +567,10 @@ function renderCard(){
   }else{ f = '🔊　点一下听发音'; }
 
   $('front').textContent = f;
+  $('frontSpeakWrap').classList.remove('hide');
   updateTop();
   if(m === 'listen') speak(c.en);
+  prewarm();
 }
 
 function updateTop(){
@@ -558,9 +602,11 @@ function reveal(how){
     }
   }
   $('back').classList.remove('hide');
+  $('frontSpeakWrap').classList.add('hide');
   $('askBtns').classList.add('hide');
   $('judgeBtns').classList.remove('hide');
-  if(m !== 'listen') speak(c.en);
+  if(m !== 'listen' && st.autoSpeak) speak(c.en);
+  prewarm();
 }
 
 /* 先藏例句时，点一下再把例句展开 */
@@ -710,6 +756,8 @@ function refreshHome(){
   $('sCount').textContent = starCount();
   $('starOnlyBtn').className = 'ghost' + (st.starOnly ? ' on' : '');
   $('exToggle').textContent = st.hideEx ? '例句：先藏起来' : '例句：直接显示';
+  $('autoSpeakBtn').textContent = '自动朗读：' + (st.autoSpeak ? '开' : '关');
+  $('rateBtn').textContent = '语速：' + RATE_NAMES[st.rate == null ? 1 : st.rate];
   drawCd();
   var pend = (st.ans || 0) - (st.bkAns || 0);
   var w = $('bkWarn');
@@ -811,9 +859,14 @@ function openWrong(){
     var c = w[i], it = st.items[c.en];
     var d = document.createElement('div');
     d.className = 'wItem';
-    d.innerHTML = '<span class="n">错 ' + it.w + ' 次</span><div class="a"></div><div class="b"></div>';
+    d.innerHTML = '<span class="n">错 ' + it.w + ' 次</span><div class="a"></div><div class="b"></div>' +
+      '<div style="margin-top:6px"><button class="spk">🔊 听</button></div>';
     d.querySelector('.a').textContent = c.en;
     d.querySelector('.b').textContent = c.zh;
+    d.querySelector('.spk').onclick = function(ev){
+      if(ev && ev.stopPropagation) ev.stopPropagation();
+      speak(c.en);
+    };
     box.appendChild(d);
   }
   show('vWrong');
@@ -881,7 +934,12 @@ function renderSearch(){
       d.className = 'sItem';
       var l = document.createElement('div'); l.className = 'l'; l.textContent = c.en;
       var r = document.createElement('div'); r.className = 'r'; r.textContent = c.zh;
-      d.appendChild(l); d.appendChild(r);
+      var spk = document.createElement('button'); spk.className = 'spk'; spk.textContent = '🔊';
+      spk.onclick = function(ev){
+        if(ev && ev.stopPropagation) ev.stopPropagation();
+        speak(c.en);
+      };
+      d.appendChild(l); d.appendChild(r); d.appendChild(spk);
       d.onclick = function(){ startSingle(c); };
       box.appendChild(d);
     })(hits[i]);
@@ -926,6 +984,8 @@ function spRender(){
   $('spTag').textContent = '⚡ 极速刷词 · 第 ' + sp.round + ' 轮 · 共 ' + sp.q.length +
     ' 张' + (st.starOnly ? ' · 只看收藏' : '');
   setSwipe(0);
+  if(st.autoSpeak) speak(c.en);
+  prewarm();
 }
 function spJudge(known){
   if(!sp) return;
@@ -1075,6 +1135,18 @@ $('exToggle').onclick = function(){
   note(st.hideEx ? '以后答案先只给中文，例句要点一下才出。' : '以后答案直接把例句一起显示。');
 };
 $('q').oninput = renderSearch;
+$('autoSpeakBtn').onclick = function(){
+  st.autoSpeak = !st.autoSpeak; saveState(); refreshHome();
+  note(st.autoSpeak ? '以后答案一出来就自动读一遍；极速刷词也会念。' : '已经关掉自动朗读，想听就点卡片上的喇叭。');
+};
+$('rateBtn').onclick = function(){
+  st.rate = ((st.rate == null ? 1 : st.rate) + 1) % 3;
+  saveState(); refreshHome();
+  speak('Want to cut back on sugar?');
+};
+$('testSpeakBtn').onclick = function(){ speak('Cut back on spending. I want to cut back on sugar.'); };
+$('frontSpeak').onclick = function(){ var c = round && round.q[round.i]; if(c) speak(c.en); };
+$('spSpeak').onclick = function(){ var c = sp && sp.q[sp.i]; if(c) speak(c.en); };
 $('speakBtn').onclick = function(){ var c = round.q[round.i]; speak(c.en + '. ' + (c.ex || '')); };
 $('front').onclick = function(){
   if(sw.blockClick) return;
